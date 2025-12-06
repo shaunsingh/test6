@@ -33,6 +33,7 @@
         in lib.hasPrefix "cuda" name
         || lib.hasPrefix "nvidia" name
         || lib.elem name [
+          "libcufft"
           "cudnn"
           "cutensor"
           "nccl"
