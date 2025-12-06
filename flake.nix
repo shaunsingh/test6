@@ -127,28 +127,34 @@
                 addCuda = deps: deps ++ cudaLibs;
               in
               {
-                # Ensure CuPy wheels see all CUDA runtime libs for autoPatchelf.
                 "cupy-cuda12x" =
-                  if stdenv.isLinux then
-                    prev."cupy-cuda12x".overrideAttrs (old: {
+                  prev."cupy-cuda12x".overrideAttrs (old:
+                    lib.optionalAttrs stdenv.isLinux {
                       nativeBuildInputs = addCuda (old.nativeBuildInputs or [ ]);
                       buildInputs = addCuda (old.buildInputs or [ ]);
                       propagatedBuildInputs = addCuda (old.propagatedBuildInputs or [ ]);
-                    })
-                  else
-                    prev."cupy-cuda12x";
+                    }
+                  );
 
-                numba =
-                  if stdenv.isLinux then
-                    prev.numba.overrideAttrs (old: {
+                "nvidia-cufile-cu12" =
+                  prev."nvidia-cufile-cu12".overrideAttrs (old:
+                    lib.optionalAttrs stdenv.isLinux {
+                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ];
+                      buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.rdma-core ];
+                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pkgs.rdma-core ];
+                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [ "${pkgs.rdma-core}/lib" ];
+                    }
+                  );
+
+                "numba" =
+                  prev."numba".overrideAttrs (old:
+                    lib.optionalAttrs stdenv.isLinux {
                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ];
                       buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.tbb ];
                       propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pkgs.tbb ];
                       autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [ "${pkgs.tbb}/lib" ];
-                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [ "libtbb.so.12" ];
-                    })
-                  else
-                    prev.numba;
+                    }
+                  );
 
                 "terrabridge-mcp" = prev."terrabridge-mcp".overrideAttrs (old: {
                   passthru = (old.passthru or { }) // {
