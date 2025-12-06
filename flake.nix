@@ -83,17 +83,19 @@
                     cutensor
                     libnvrtc
                   ]);
-                addCuda = deps: (deps or []) ++ cudaLibs;
+                addCuda = deps: deps ++ cudaLibs;
               in
-              lib.optionalAttrs stdenv.isLinux {
+              {
                 # Ensure CuPy wheels see all CUDA runtime libs for autoPatchelf.
-                "cupy-cuda12x" = prev."cupy-cuda12x".overrideAttrs (old: {
-                  nativeBuildInputs = addCuda old.nativeBuildInputs;
-                  buildInputs = addCuda old.buildInputs;
-                  propagatedBuildInputs = addCuda old.propagatedBuildInputs;
-                });
-              }
-              // {
+                "cupy-cuda12x" =
+                  if stdenv.isLinux then
+                    prev."cupy-cuda12x".overrideAttrs (old: {
+                      nativeBuildInputs = addCuda (old.nativeBuildInputs or []);
+                      buildInputs = addCuda (old.buildInputs or []);
+                      propagatedBuildInputs = addCuda (old.propagatedBuildInputs or []);
+                    })
+                  else
+                    prev."cupy-cuda12x";
                 "terrabridge-mcp" = prev."terrabridge-mcp".overrideAttrs (old: {
                   passthru = (old.passthru or {}) // {
                     tests = (old.tests or {}) // {
