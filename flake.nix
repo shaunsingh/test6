@@ -3,11 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
-      inputs.nixpkgs-lib.follows = "nixpkgs";
-    };
+    flake-parts.url = "github:hercules-ci/flake-parts";
 
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
@@ -100,13 +96,11 @@
                       meta = (old.meta or { }) // { broken = false; };
                     });
                     numba = prev.numba.overrideAttrs (old:  {
-                      buildInputs = with pkgs; [tbb gcc 
-                        llvmPackages_14.llvm
-                        llvmPackages_14.libclang
+                      buildInputs = with pkgs; [
+                        tbb
                       ] ++ (old.buildInputs or [ ]);
                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ 
                         pkgs.autoPatchelfHook
-                        pkgs.llvmPackages_14.libclang
                       ];
                       autoPatchelfExtraLibs = [ "${pkgs.tbb}/lib" ];
                       autoPatchelfIgnoreMissingDeps = [ "libtbb.so.12" ];
