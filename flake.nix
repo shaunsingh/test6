@@ -30,9 +30,15 @@
       forAll = lib.genAttrs systems;
       allowUnfreeCuda = pkg:
         let name = lib.getName pkg;
-        in lib.hasPrefix "cuda-" name
-        || lib.hasPrefix "nvidia-" name
-        || lib.elem name [ "cudnn" "cutensor" "nccl" "cudatoolkit" "tensorrt" ];
+        in lib.hasPrefix "cuda" name
+        || lib.hasPrefix "nvidia" name
+        || lib.elem name [
+          "cudnn"
+          "cutensor"
+          "nccl"
+          "cudatoolkit"
+          "tensorrt"
+        ];
 
       legacyPkgs = forAll (system: import nixpkgs {
         inherit system;
@@ -41,8 +47,6 @@
         };
       });
       workspaceRoot =
-        # builtins.filterSource keeps the value as a path but leaves a string context,
-        # so strip it to satisfy path.splitRoot in uv2nix.
         /. + builtins.unsafeDiscardStringContext (
           builtins.filterSource
             (name: type:
