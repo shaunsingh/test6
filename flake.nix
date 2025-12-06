@@ -28,27 +28,9 @@
       inherit (nixpkgs) lib;
       systems = lib.systems.flakeExposed;
       forAll = lib.genAttrs systems;
-      allowUnfreeCuda = pkg:
-        let name = lib.getName pkg;
-        in lib.hasPrefix "cuda-" name
-        || lib.hasPrefix "nvidia-" name
-        || lib.elem name [
-          "libcufft"
-          "libcurand"
-          "libcusparse"
-          "libcublas"
-          "cudnn"
-          "cutensor"
-          "nccl"
-          "cudatoolkit"
-          "tensorrt"
-        ];
-
       legacyPkgs = forAll (system: import nixpkgs {
         inherit system;
-        config = {
-          allowUnfreePredicate = allowUnfreeCuda;
-        };
+        config.allowUnfree = true;
       });
       workspaceRoot =
         /. + builtins.unsafeDiscardStringContext (
