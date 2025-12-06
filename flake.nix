@@ -195,7 +195,11 @@
                           (final.mkVirtualEnv "test-env" { "terrabridge-mcp" = [ "test" ]; })
                         ];
                         dontConfigure = true;
-                        buildPhase = "runHook preBuild; SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt pytest -q; runHook postBuild";
+                        buildPhase = "
+                          runHook preBuild;
+                          SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt pytest -q;
+                          runHook postBuild
+                        ";
                         installPhase = "mkdir -p $out";
                       };
                     };
