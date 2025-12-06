@@ -95,23 +95,6 @@
                     open-webui = prev.open-webui.overrideAttrs (old: {
                       meta = (old.meta or { }) // { broken = false; };
                     });
-                    numba = prev.numba.overrideAttrs (old:  {
-                      buildInputs = with pkgs; [
-                        tbb
-                      ] ++ (old.buildInputs or [ ]);
-                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ 
-                        pkgs.autoPatchelfHook
-                      ];
-                      autoPatchelfExtraLibs = [ "${pkgs.tbb}/lib" ];
-                      autoPatchelfIgnoreMissingDeps = [ "libtbb.so.12" ];
-                      postFixup = ''
-                        find ${pkgs.tbb}/lib -name "libtbb*" -exec file {} \;
-                        patchelf --set-rpath "${pkgs.lib.makeLibraryPath ([
-                          pkgs.tbb
-                        ] ++ (old.buildInputs or []))}" \
-                        $out/lib/python*/site-packages/numba/np/ufunc/tbbpool.cpython-*-linux-gnu.so
-                      '';
-                    });
                   }
                 )
               ];
@@ -154,6 +137,18 @@
                     })
                   else
                     prev."cupy-cuda12x";
+
+                numba =
+                  if stdenv.isLinux then
+                    prev.numba.overrideAttrs (old: {
+                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ];
+                      buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.tbb ];
+                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pkgs.tbb ];
+                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [ "${pkgs.tbb}/lib" ];
+                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [ "libtbb.so.12" ];
+                    })
+                  else
+                    prev.numba;
 
                 "terrabridge-mcp" = prev."terrabridge-mcp".overrideAttrs (old: {
                   passthru = (old.passthru or { }) // {
