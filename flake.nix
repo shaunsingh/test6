@@ -30,10 +30,11 @@
       forAll = lib.genAttrs systems;
       allowUnfreeCuda = pkg:
         let name = lib.getName pkg;
-        in lib.hasPrefix "cuda" name
-        || lib.hasPrefix "nvidia" name
+        in lib.hasPrefix "cuda-" name
+        || lib.hasPrefix "nvidia-" name
         || lib.elem name [
           "libcufft"
+          "libcurand"
           "cudnn"
           "cutensor"
           "nccl"
