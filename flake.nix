@@ -34,37 +34,17 @@
     ...
   }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = nixpkgs.lib.systems.flakeExposed;
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
 
       perSystem =
         { system, lib, ... }:
         let
-          ignoreNames = [
-            ".git"
-            ".direnv"
-            ".venv"
-            "venv"
-            "result"
-            "results"
-            "__pycache__"
-            ".mypy_cache"
-            ".pytest_cache"
-            ".ruff_cache"
-            ".idea"
-            ".vscode"
-            "dist"
-            "build"
-            ".coverage"
-          ];
-
-          workspaceRoot = lib.cleanSourceWith {
-            src = ./.;
-            filter =
-              name: type:
-              let base = builtins.baseNameOf name; in
-              !lib.elem base ignoreNames;
-          };
-
+          workspaceRoot = pkgs.nix-gitignore.gitignoreSource [ ] ./.;
           workspace = uv2nix.lib.workspace.loadWorkspace { inherit workspaceRoot; };
           baseDeps = workspace.deps.default;
 
@@ -75,6 +55,7 @@
             };
 
           deps = {
+            # base = withExtra [];
             base = withExtra [ "vllm" ];
             vllm = withExtra [ "vllm" ];
             tensorrt = withExtra [ "tensorrt" ];
@@ -115,25 +96,25 @@
                 cudaLibs = lib.optionals stdenv.isLinux (
                   with pkgs.cudaPackages_12;
                   [
+                    cuda_cudart
+                    cuda_cupti
+                    cuda_nvrtc
                     libcufft
                     libcurand
                     libcusparse
+                    libcusparse_lt
                     libcublas
+                    libcusolver
                     libnvjitlink
+                    libcufile
+                    libnvshmem
                     nccl
                     cudnn
-                    libcusolver
                   ]
                 );
-                patchCuda =
-                  pkg:
-                  pkg.overrideAttrs (old:
-                    lib.optionalAttrs stdenv.isLinux {
-                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ cudaLibs;
-                      buildInputs = (old.buildInputs or [ ]) ++ cudaLibs;
-                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
-                    }
-                  );
+                cudaLibPaths =
+                  (map (x: "${x}/lib") cudaLibs)
+                  ++ (map (x: "${x}/lib64") cudaLibs);
                 hpcLibs =
                   lib.optionals stdenv.isLinux [
                     pkgs.rdma-core
@@ -145,6 +126,17 @@
                 hpcLibPaths =
                   (map (x: "${x}/lib") hpcLibs)
                   ++ (map (x: "${x}/lib64") hpcLibs);
+                patchCuda =
+                  pkg:
+                  pkg.overrideAttrs (old:
+                    lib.optionalAttrs stdenv.isLinux {
+                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ cudaLibs;
+                      buildInputs = (old.buildInputs or [ ]) ++ cudaLibs;
+                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
+                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ cudaLibPaths;
+                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [ "libcuda.so.1" ];
+                    }
+                  );
                 patchHpc =
                   pkg:
                   pkg.overrideAttrs (old:
@@ -161,6 +153,10 @@
                 "nvidia-cusparse-cu12" = patchCuda prev."nvidia-cusparse-cu12";
                 "nvidia-cusolver-cu12" = patchCuda prev."nvidia-cusolver-cu12";
                 "nvidia-cutlass-dsl" = patchCuda prev."nvidia-cutlass-dsl";
+                "torch" = patchCuda prev."torch";
+                "torchvision" = patchCuda prev."torchvision";
+                "triton" = patchCuda prev."triton";
+                "vllm" = patchCuda prev."vllm";
 
                 "nvidia-nvshmem-cu12" = patchHpc prev."nvidia-nvshmem-cu12";
                 "nvidia-cufile-cu12" = patchHpc prev."nvidia-cufile-cu12";
@@ -229,78 +225,87 @@
                   export LLM_MODEL MCP_PORT AGENT_PORT LLM_PORT CLIENT_ID
                   export WITH_TENSORRT=${if withTensorRT then "1" else "0"}
                 '';
+              scriptBody =
+                ''
+                  set -euo pipefail
+                  ${baseEnv}
+                ''
+                + lib.optionalString (!withWebui && entry == "server") ''
+                  exec ${venv}/bin/server --agent-port "$AGENT_PORT" --llm-port "$LLM_PORT" --mcp-port "$MCP_PORT" --client-id "$CLIENT_ID"
+                ''
+                + lib.optionalString (!withWebui && entry == "mcp-server") ''
+                  exec ${venv}/bin/mcp-server --mcp-port "$MCP_PORT"
+                ''
+                + lib.optionalString (!withWebui && entry == "agent") ''
+                  exec ${venv}/bin/agent --agent-port "$AGENT_PORT" --llm-port "$LLM_PORT" --mcp-port "$MCP_PORT" --client-id "$CLIENT_ID"
+                ''
+                + lib.optionalString withWebui ''
+                  cleanup() { echo; echo "[terrabridge] stopping..."; kill "$SERVER_PID" "$WEBUI_PID" 2>/dev/null || true; wait 2>/dev/null || true; }
+                  trap cleanup EXIT INT TERM
+
+                  echo "╔═══════════════════════════════════════════════════════════════╗"
+                  echo "║              Terrabridge MCP + Open WebUI                     ║"
+                  echo "╚═══════════════════════════════════════════════════════════════╝"
+                  echo
+
+                  echo "[1/2] Starting server..."
+                  ${venv}/bin/server --agent-port "$AGENT_PORT" --llm-port "$LLM_PORT" --mcp-port "$MCP_PORT" --client-id "$CLIENT_ID" &
+                  SERVER_PID=$!
+                  sleep 4
+
+                  echo "[2/2] Starting Open WebUI..."
+                  mkdir -p "$DATA_DIR"
+                  export OPENAI_API_BASE="http://localhost:$AGENT_PORT/v1"
+                  export OPENAI_API_BASE_URLS="http://localhost:$AGENT_PORT/v1"
+                  export OPENAI_API_KEY="''${OPENAI_API_KEY:-sk-local}"
+                  export ENABLE_OLLAMA_API=false WEBUI_AUTH=false DATA_DIR
+                  export OPENWEBUI_ENABLE_USER_MEMORY=true
+                  export TOOL_SERVER_CONNECTIONS='[{"type":"mcp","url":"http://localhost:'"$MCP_PORT"'/mcp","path":"/mcp","auth_type":"none","info":{"id":"terrabridge-mcp","name":"Terrabridge MCP"},"config":{"enable":true}}]'
+                  ${pkgs.open-webui}/bin/open-webui serve --port "$WEBUI_PORT" 2>&1 | grep -v "Permission denied" &
+                  WEBUI_PID=$!
+                  echo
+                  echo "[2/2] Waiting for Open WebUI to be ready..."
+                  start_wait=$(date +%s)
+                  timeout=120
+                  while true; do
+                    if curl -sf "http://localhost:$WEBUI_PORT/api/version" >/dev/null 2>/dev/null; then
+                      break
+                    fi
+                    if ! kill -0 "$WEBUI_PID" 2>/dev/null; then
+                      echo "[error] Open WebUI exited before becoming ready" >&2
+                      exit 1
+                    fi
+                    now=$(date +%s)
+                    if [ $((now - start_wait)) -ge $timeout ]; then
+                      echo "[error] Open WebUI did not become ready within ''${timeout}s" >&2
+                      exit 1
+                    fi
+                    sleep 1
+                  done
+
+                  echo
+                  echo "✓ Ready"
+                  echo "  Open WebUI: http://localhost:$WEBUI_PORT"
+                  echo "  Agent API:  http://localhost:$AGENT_PORT/v1"
+                  echo "  MCP:        http://localhost:$MCP_PORT/mcp"
+                  echo "  LLM:        http://localhost:$LLM_PORT/v1"
+                  echo "  Model:      $LLM_MODEL"
+                  echo "  Backend:    ${if withTensorRT then "TensorRT-LLM" else "vLLM"}"
+                  echo
+                  echo "Ctrl+C to stop"
+                  wait
+                '';
             in
-            pkgs.writeShellScriptBin name (
-              ''
-                set -euo pipefail
-                ${baseEnv}
-              ''
-              + lib.optionalString (!withWebui && entry == "server") ''
-                exec ${venv}/bin/server --agent-port "$AGENT_PORT" --llm-port "$LLM_PORT" --mcp-port "$MCP_PORT" --client-id "$CLIENT_ID"
-              ''
-              + lib.optionalString (!withWebui && entry == "mcp-server") ''
-                exec ${venv}/bin/mcp-server --mcp-port "$MCP_PORT"
-              ''
-              + lib.optionalString (!withWebui && entry == "agent") ''
-                exec ${venv}/bin/agent --agent-port "$AGENT_PORT" --llm-port "$LLM_PORT" --mcp-port "$MCP_PORT" --client-id "$CLIENT_ID"
-              ''
-              + lib.optionalString withWebui ''
-                cleanup() { echo; echo "[terrabridge] stopping..."; kill "$SERVER_PID" "$WEBUI_PID" 2>/dev/null || true; wait 2>/dev/null || true; }
-                trap cleanup EXIT INT TERM
-
-                echo "╔═══════════════════════════════════════════════════════════════╗"
-                echo "║              Terrabridge MCP + Open WebUI                     ║"
-                echo "╚═══════════════════════════════════════════════════════════════╝"
-                echo
-
-                echo "[1/2] Starting server..."
-                ${venv}/bin/server --agent-port "$AGENT_PORT" --llm-port "$LLM_PORT" --mcp-port "$MCP_PORT" --client-id "$CLIENT_ID" &
-                SERVER_PID=$!
-                sleep 4
-
-                echo "[2/2] Starting Open WebUI..."
-                mkdir -p "$DATA_DIR"
-                export OPENAI_API_BASE="http://localhost:$AGENT_PORT/v1"
-                export OPENAI_API_BASE_URLS="http://localhost:$AGENT_PORT/v1"
-                export OPENAI_API_KEY="''${OPENAI_API_KEY:-sk-local}"
-                export ENABLE_OLLAMA_API=false WEBUI_AUTH=false DATA_DIR
-                export OPENWEBUI_ENABLE_USER_MEMORY=true
-                export TOOL_SERVER_CONNECTIONS='[{"type":"mcp","url":"http://localhost:'"$MCP_PORT"'/mcp","path":"/mcp","auth_type":"none","info":{"id":"terrabridge-mcp","name":"Terrabridge MCP"},"config":{"enable":true}}]'
-                ${pkgs.open-webui}/bin/open-webui serve --port "$WEBUI_PORT" 2>&1 | grep -v "Permission denied" &
-                WEBUI_PID=$!
-                echo
-                echo "[2/2] Waiting for Open WebUI to be ready..."
-                start_wait=$(date +%s)
-                timeout=120
-                while true; do
-                  if ${pkgs.curl}/bin/curl -sf "http://localhost:$WEBUI_PORT/api/version" >/dev/null 2>/dev/null; then
-                    break
-                  fi
-                  if ! kill -0 "$WEBUI_PID" 2>/dev/null; then
-                    echo "[error] Open WebUI exited before becoming ready" >&2
-                    exit 1
-                  fi
-                  now=$(date +%s)
-                  if [ $((now - start_wait)) -ge $timeout ]; then
-                    echo "[error] Open WebUI did not become ready within ''${timeout}s" >&2
-                    exit 1
-                  fi
-                  sleep 1
-                done
-
-                echo
-                echo "✓ Ready"
-                echo "  Open WebUI: http://localhost:$WEBUI_PORT"
-                echo "  Agent API:  http://localhost:$AGENT_PORT/v1"
-                echo "  MCP:        http://localhost:$MCP_PORT/mcp"
-                echo "  LLM:        http://localhost:$LLM_PORT/v1"
-                echo "  Model:      $LLM_MODEL"
-                echo "  Backend:    ${if withTensorRT then "TensorRT-LLM" else "vLLM"}"
-                echo
-                echo "Ctrl+C to stop"
-                wait
-              ''
-            );
+            pkgs.writeShellApplication {
+              inherit name;
+              text = scriptBody;
+              runtimeInputs = [
+                pkgs.coreutils
+                pkgs.gnugrep
+                pkgs.curl
+                pkgs.procps
+              ];
+            };
 
           backendEnv =
             backend:
@@ -426,6 +431,7 @@
               (mkEnv "dev-env" depsForSystem)
               pkgs.uv
               pkgs.black
+              pkgs.git
             ];
             env = {
               UV_NO_SYNC = "1";
