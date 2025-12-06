@@ -70,20 +70,22 @@
             })
             (final: prev:
               let
-                cudaLibs = if pkgs.stdenv.isLinux then with pkgs.cudaPackages_12; [
-                  libcufft
-                  libcurand
-                  libcusparse
-                  libcublas
-                  nccl
-                  cudnn
-                  libcusolver
-                  cutensor
-                  libnvrtc
-                ] else [];
+                inherit (pkgs) stdenv;
+                cudaLibs =
+                  lib.optionals stdenv.isLinux (with pkgs.cudaPackages_12; [
+                    libcufft
+                    libcurand
+                    libcusparse
+                    libcublas
+                    nccl
+                    cudnn
+                    libcusolver
+                    cutensor
+                    libnvrtc
+                  ]);
                 addCuda = deps: (deps or []) ++ cudaLibs;
               in
-              lib.optionalAttrs pkgs.stdenv.isLinux {
+              lib.optionalAttrs stdenv.isLinux {
                 # Ensure CuPy wheels see all CUDA runtime libs for autoPatchelf.
                 "cupy-cuda12x" = prev."cupy-cuda12x".overrideAttrs (old: {
                   nativeBuildInputs = addCuda old.nativeBuildInputs;
