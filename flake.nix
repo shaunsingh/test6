@@ -69,7 +69,29 @@
               dependencies = depsSpec;
             })
             (final: prev:
-              {
+              let
+                cudaLibs = if pkgs.stdenv.isLinux then with pkgs.cudaPackages_12; [
+                  libcufft
+                  libcurand
+                  libcusparse
+                  libcublas
+                  nccl
+                  cudnn
+                  libcusolver
+                  cutensor
+                  libnvrtc
+                ] else [];
+                addCuda = deps: (deps or []) ++ cudaLibs;
+              in
+              lib.optionalAttrs pkgs.stdenv.isLinux {
+                # Ensure CuPy wheels see all CUDA runtime libs for autoPatchelf.
+                "cupy-cuda12x" = prev."cupy-cuda12x".overrideAttrs (old: {
+                  nativeBuildInputs = addCuda old.nativeBuildInputs;
+                  buildInputs = addCuda old.buildInputs;
+                  propagatedBuildInputs = addCuda old.propagatedBuildInputs;
+                });
+              }
+              // {
                 "terrabridge-mcp" = prev."terrabridge-mcp".overrideAttrs (old: {
                   passthru = (old.passthru or {}) // {
                     tests = (old.tests or {}) // {
