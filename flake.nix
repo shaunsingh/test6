@@ -93,6 +93,7 @@
               final: prev:
               let
                 inherit (pkgs) stdenv;
+                pyLib = pkgs.python313.libPrefix;
                 cudaLibs = lib.optionals stdenv.isLinux (
                   with pkgs.cudaPackages_12;
                   [
@@ -115,6 +116,7 @@
                 cudaLibPaths =
                   (map (x: "${x}/lib") cudaLibs)
                   ++ (map (x: "${x}/lib64") cudaLibs);
+                torchLibPath = "${prev."torch"}/lib/${pyLib}/site-packages/torch/lib";
                 hpcLibs =
                   lib.optionals stdenv.isLinux [
                     pkgs.rdma-core
@@ -133,7 +135,7 @@
                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ cudaLibs;
                       buildInputs = (old.buildInputs or [ ]) ++ cudaLibs;
                       propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
-                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ cudaLibPaths;
+                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ cudaLibPaths ++ [ torchLibPath ];
                       autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [ "libcuda.so.1" ];
                     }
                   );
@@ -155,6 +157,7 @@
                 "nvidia-cutlass-dsl" = patchCuda prev."nvidia-cutlass-dsl";
                 "torch" = patchCuda prev."torch";
                 "torchvision" = patchCuda prev."torchvision";
+                "torchaudio" = patchCuda prev."torchaudio";
                 "triton" = patchCuda prev."triton";
                 "vllm" = patchCuda prev."vllm";
 
