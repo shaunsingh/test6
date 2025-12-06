@@ -35,6 +35,8 @@
         || lib.elem name [
           "libcufft"
           "libcurand"
+          "libcusparse"
+          "libcublas"
           "cudnn"
           "cutensor"
           "nccl"
