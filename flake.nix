@@ -83,10 +83,7 @@
           pkgs =
             import nixpkgs {
               inherit system;
-              config = { 
-                allowUnfree = true;
-                cudaSupport = true;
-              };
+              config.allowUnfree = true;
               overlays = [
                 (
                   final: prev: {
@@ -128,54 +125,45 @@
                     libcusolver
                   ]
                 );
-                addCuda = deps: deps ++ cudaLibs;
-              in
-              {
-                "cupy-cuda12x" =
-                  prev."cupy-cuda12x".overrideAttrs (old:
+                patchCuda =
+                  pkg:
+                  pkg.overrideAttrs (old:
                     lib.optionalAttrs stdenv.isLinux {
-                      nativeBuildInputs = addCuda (old.nativeBuildInputs or [ ]);
-                      buildInputs = addCuda (old.buildInputs or [ ]);
-                      propagatedBuildInputs = addCuda (old.propagatedBuildInputs or [ ]);
+                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ cudaLibs;
+                      buildInputs = (old.buildInputs or [ ]) ++ cudaLibs;
+                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
                     }
                   );
-
-                "nvidia-cufile-cu12" =
-                  prev."nvidia-cufile-cu12".overrideAttrs (old:
+                hpcLibs =
+                  lib.optionals stdenv.isLinux [
+                    pkgs.rdma-core
+                    pkgs.openmpi
+                    pkgs.ucx
+                    pkgs.pmix
+                    pkgs.libfabric
+                  ];
+                hpcLibPaths =
+                  (map (x: "${x}/lib") hpcLibs)
+                  ++ (map (x: "${x}/lib64") hpcLibs);
+                patchHpc =
+                  pkg:
+                  pkg.overrideAttrs (old:
                     lib.optionalAttrs stdenv.isLinux {
                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ];
-                      buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.rdma-core ];
-                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pkgs.rdma-core ];
-                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [ "${pkgs.rdma-core}/lib" ];
+                      buildInputs = (old.buildInputs or [ ]) ++ hpcLibs;
+                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ hpcLibs;
+                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ hpcLibPaths;
                     }
                   );
+              in
+              {
+                "cupy-cuda12x" = patchCuda prev."cupy-cuda12x";
+                "nvidia-cusparse-cu12" = patchCuda prev."nvidia-cusparse-cu12";
+                "nvidia-cusolver-cu12" = patchCuda prev."nvidia-cusolver-cu12";
+                "nvidia-cutlass-dsl" = patchCuda prev."nvidia-cutlass-dsl";
 
-                "nvidia-cusparse-cu12" =
-                  prev."nvidia-cusparse-cu12".overrideAttrs (old:
-                    lib.optionalAttrs stdenv.isLinux {
-                      nativeBuildInputs = addCuda (old.nativeBuildInputs or [ ]);
-                      buildInputs = addCuda (old.buildInputs or [ ]);
-                      propagatedBuildInputs = addCuda (old.propagatedBuildInputs or [ ]);
-                    }
-                  );
-
-                "nvidia-cusolver-cu12" =
-                  prev."nvidia-cusolver-cu12".overrideAttrs (old:
-                    lib.optionalAttrs stdenv.isLinux {
-                      nativeBuildInputs = addCuda (old.nativeBuildInputs or [ ]);
-                      buildInputs = addCuda (old.buildInputs or [ ]);
-                      propagatedBuildInputs = addCuda (old.propagatedBuildInputs or [ ]);
-                    }
-                  );
-
-                "nvidia-cutlass-dsl" =
-                  prev."nvidia-cutlass-dsl".overrideAttrs (old:
-                    lib.optionalAttrs stdenv.isLinux {
-                      nativeBuildInputs = addCuda (old.nativeBuildInputs or [ ]);
-                      buildInputs = addCuda (old.buildInputs or [ ]);
-                      propagatedBuildInputs = addCuda (old.propagatedBuildInputs or [ ]);
-                    }
-                  );
+                "nvidia-nvshmem-cu12" = patchHpc prev."nvidia-nvshmem-cu12";
+                "nvidia-cufile-cu12" = patchHpc prev."nvidia-cufile-cu12";
 
                 "numba" =
                   prev."numba".overrideAttrs (old:
