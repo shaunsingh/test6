@@ -72,7 +72,6 @@
                     nccl
                     cudnn
                     libcusolver
-                    libnvrtc
                   ]);
                 addCuda = deps: deps ++ cudaLibs;
               in
