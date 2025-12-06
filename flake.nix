@@ -40,17 +40,19 @@
           allowUnfreePredicate = allowUnfreeCuda;
         };
       });
-      workspaceRoot = lib.cleanSourceWith {
-        # Drop common local/CI artifacts to keep store paths stable.
-        src = ./.;
-        filter = name: type:
-          let base = baseNameOf name; in
-          ! lib.elem base [
-            ".git" ".direnv" ".venv" "venv" "result" "results"
-            "__pycache__" ".mypy_cache" ".pytest_cache" ".ruff_cache"
-            ".idea" ".vscode" "dist" "build" ".coverage"
-          ];
-      };
+      workspaceRoot =
+        # builtins.filterSource keeps the value as a path but leaves a string context,
+        # so strip it to satisfy path.splitRoot in uv2nix.
+        /. + builtins.unsafeDiscardStringContext (
+          builtins.filterSource
+            (name: type:
+              let base = baseNameOf name; in
+              ! lib.elem base [
+                ".git" ".direnv" ".venv" "venv" "result" "results"
+                "__pycache__" ".mypy_cache" ".pytest_cache" ".ruff_cache"
+                ".idea" ".vscode" "dist" "build" ".coverage"
+              ])
+            ./.);
       workspace = uv2nix.lib.workspace.loadWorkspace { inherit workspaceRoot; };
 
       baseDeps = workspace.deps.default;
