@@ -93,10 +93,10 @@
               final: prev:
               let
                 inherit (pkgs) stdenv;
-                pyLib = pkgs.python313.libPrefix;
                 cudaLibs = lib.optionals stdenv.isLinux (
                   with pkgs.cudaPackages_12;
                   [
+                    cudatoolkit
                     cuda_cudart
                     cuda_cupti
                     cuda_nvrtc
@@ -114,9 +114,14 @@
                   ]
                 );
                 cudaLibPaths =
-                  (map (x: "${x}/lib") cudaLibs)
-                  ++ (map (x: "${x}/lib64") cudaLibs);
-                torchLibPath = "${prev."torch"}/lib/${pyLib}/site-packages/torch/lib";
+                  lib.concatMap
+                    (x: [
+                      "${x}/lib"
+                      "${x}/lib64"
+                      "${x}/targets/x86_64-linux/lib"
+                      "${x}/targets/aarch64-linux/lib"
+                    ])
+                    cudaLibs;
                 hpcLibs =
                   lib.optionals stdenv.isLinux [
                     pkgs.rdma-core
@@ -135,8 +140,11 @@
                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ cudaLibs;
                       buildInputs = (old.buildInputs or [ ]) ++ cudaLibs;
                       propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
-                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ cudaLibPaths ++ [ torchLibPath ];
-                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [ "libcuda.so.1" ];
+                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ cudaLibPaths;
+                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
+                        "libcuda.so.1"
+                        "libnvshmem_host.so.3"
+                      ];
                     }
                   );
                 patchHpc =
