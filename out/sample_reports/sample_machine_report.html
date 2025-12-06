@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISO 27001 Compliance Report - Machine</title>
+    <style>
+        :root {
+            --bg:#161616;
+            --panel:#262626;
+            --text:#f2f4f8;
+            --muted:#c1c7cd;
+            --border:#393939;
+            --green:#42be65;
+            --red:#ee5396;
+            --yellow:#ff7eb6;
+            --blue:#33b1ff;
+        }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:ui-sans-serif,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.45;padding:20px;}
+        .container{max-width:1180px;margin:0 auto;}
+        header{margin-bottom:18px;}
+        h1{font-size:1.75rem;font-weight:700;margin-bottom:4px;}
+        .subtitle{color:var(--muted);font-size:0.9rem;}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:14px;}
+        .card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;}
+        .card-title{font-size:0.72rem;letter-spacing:0.3px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
+        .card-value{font-size:1.8rem;font-weight:700;}
+        .status-compliant{color:var(--green);}
+        .status-warning{color:var(--yellow);}
+        .status-critical{color:var(--red);}
+        .status-info{color:var(--blue);}
+        .section{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:10px;}
+        .section-title{font-size:1rem;font-weight:700;margin-bottom:8px;}
+        table{width:100%;border-collapse:collapse;font-size:0.95rem;}
+        th,td{padding:9px 6px;border-bottom:1px solid var(--border);}
+        th{color:var(--muted);font-size:0.78rem;text-transform:uppercase;font-weight:600;}
+        .badge{display:inline-block;padding:3px 7px;border-radius:4px;font-size:0.72rem;font-weight:650;background:rgba(255,92,92,0.12);color:var(--red);}
+        .badge-pass{background:rgba(62,207,142,0.12);color:var(--green);}
+        .badge-warning{background:rgba(247,201,72,0.12);color:var(--yellow);}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ISO 27001 Compliance Report</h1>
+            <p class="subtitle">Type: Machine | Generated: 2025-12-05T12:00:00Z</p>
+        </header>
+<div class="grid"><div class="card"><div class="card-title">Hostname</div><div class="card-value status-info">prod-app-01.example.corp</div></div><div class="card"><div class="card-title">Compliance Score</div><div class="card-value status-compliant">96.2%</div></div><div class="card"><div class="card-title">Status</div><div class="card-value status-compliant">Compliant</div></div><div class="card"><div class="card-title">Risk Level</div><div class="card-value status-warning">Medium</div></div></div><div class="grid"><div class="card"><div class="card-title">Controls Passed</div><div class="card-value status-compliant">162</div></div><div class="card"><div class="card-title">Controls Failed</div><div class="card-value status-critical">9</div></div><div class="card"><div class="card-title">Active Alerts</div><div class="card-value status-warning">3</div></div><div class="card"><div class="card-title">Events (24h)</div><div class="card-value status-info">128</div></div></div>
+        <div class="section">
+            <h2 class="section-title">Critical Findings</h2>
+            <table>
+                <thead><tr><th>Control</th><th>ISO Clause</th><th>Severity</th><th>Details</th></tr></thead>
+                <tbody><tr><td>CVE Patch Policy</td><td>A.12.6.1</td><td><span class="badge badge-fail">critical</span></td><td>Kernel CVE-2025-12345 remains unpatched on prod-app-01; exploit code exists in the wild and provides...</td></tr><tr><td>SSH Hardening</td><td>A.9.4.2</td><td><span class="badge badge-fail">critical</span></td><td>SSH permits password authentication and root login from untrusted networks; MFA not enforced for adm...</td></tr><tr><td>Secrets Rotation</td><td>A.10.1.2</td><td><span class="badge badge-fail">critical</span></td><td>Long-lived API keys used by deployment pipeline exceed 180 days; no rotation policy applied and keys...</td></tr><tr><td>Database Encryption</td><td>A.18.1.4</td><td><span class="badge badge-fail">critical</span></td><td>Primary database volume lacks at-rest encryption; snapshot replicas inherit the same weakness across...</td></tr><tr><td>Backup Integrity</td><td>A.12.3.1</td><td><span class="badge badge-fail">critical</span></td><td>No evidence of successful restore tests in the last 90 days; backup chain for Q4 missing verificatio...</td></tr><tr><td>Network Segmentation</td><td>A.13.1.3</td><td><span class="badge badge-fail">critical</span></td><td>Production and staging share overlapping security groups; lateral movement possible due to permissiv...</td></tr><tr><td>TLS Configuration</td><td>A.13.2.1</td><td><span class="badge badge-fail">high</span></td><td>TLS endpoint supports deprecated ciphers (TLS_RSA_WITH_3DES) and allows TLSv1.0 handshakes from lega...</td></tr><tr><td>Audit Logging</td><td>A.12.4.1</td><td><span class="badge badge-fail">high</span></td><td>Syslog forwarding disabled for 2 agents; audit trails missing for sudo events between 02:00-04:00 UT...</td></tr><tr><td>Container Image Provenance</td><td>A.14.2.5</td><td><span class="badge badge-fail">high</span></td><td>Images lack signed provenance; admission controller permit lists unsigned images from unverified reg...</td></tr><tr><td>Privileged Containers</td><td>A.9.1.2</td><td><span class="badge badge-fail">high</span></td><td>Two Kubernetes workloads run with privileged escalation; host PID namespace exposed to application c...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

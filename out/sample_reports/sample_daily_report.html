@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISO 27001 Compliance Report - Daily</title>
+    <style>
+        :root {
+            --bg:#161616;
+            --panel:#262626;
+            --text:#f2f4f8;
+            --muted:#c1c7cd;
+            --border:#393939;
+            --green:#42be65;
+            --red:#ee5396;
+            --yellow:#ff7eb6;
+            --blue:#33b1ff;
+        }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:ui-sans-serif,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.45;padding:20px;}
+        .container{max-width:1180px;margin:0 auto;}
+        header{margin-bottom:18px;}
+        h1{font-size:1.75rem;font-weight:700;margin-bottom:4px;}
+        .subtitle{color:var(--muted);font-size:0.9rem;}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:14px;}
+        .card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;}
+        .card-title{font-size:0.72rem;letter-spacing:0.3px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
+        .card-value{font-size:1.8rem;font-weight:700;}
+        .status-compliant{color:var(--green);}
+        .status-warning{color:var(--yellow);}
+        .status-critical{color:var(--red);}
+        .status-info{color:var(--blue);}
+        .section{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:10px;}
+        .section-title{font-size:1rem;font-weight:700;margin-bottom:8px;}
+        table{width:100%;border-collapse:collapse;font-size:0.95rem;}
+        th,td{padding:9px 6px;border-bottom:1px solid var(--border);}
+        th{color:var(--muted);font-size:0.78rem;text-transform:uppercase;font-weight:600;}
+        .badge{display:inline-block;padding:3px 7px;border-radius:4px;font-size:0.72rem;font-weight:650;background:rgba(255,92,92,0.12);color:var(--red);}
+        .badge-pass{background:rgba(62,207,142,0.12);color:var(--green);}
+        .badge-warning{background:rgba(247,201,72,0.12);color:var(--yellow);}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ISO 27001 Compliance Report</h1>
+            <p class="subtitle">Type: Daily | Generated: 2025-12-05T12:00:00Z</p>
+        </header>
+<div class="grid"><div class="card"><div class="card-title">Fleet Score</div><div class="card-value status-warning">74.2%</div></div><div class="card"><div class="card-title">Machines Requiring Attention</div><div class="card-value status-warning">12</div></div><div class="card"><div class="card-title">Unacknowledged Alerts</div><div class="card-value status-critical">18</div></div><div class="card"><div class="card-title">Critical Events (24h)</div><div class="card-value status-critical">6</div></div></div>
+        <div class="section">
+            <h2 class="section-title">Action Items</h2>
+            <ul style="list-style:none;padding:0;"><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Acknowledge and triage 18 unacknowledged SOC alerts.</li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Patch CVE-2025-12345 on prod-app-01 and jump hosts.</li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Disable password SSH authentication for all edge gateways.</li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Enable audit log forwarding for app-backend-02 and cache-02.</li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Rotate deployment pipeline secrets older than 180 days.</li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Backfill encryption enforcement for database snapshots.</li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Review privileged container workloads in kube-system namespace.</li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Re-segment staging and production security groups.</li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Add admission control policy for signed container images only.</li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border);">• Schedule restore test for Q4 backups and document results.</li></ul>
+        </div>
+    </div>
+</body>
+</html>

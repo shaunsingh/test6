@@ -1,0 +1,16 @@
+services:
+  terrabridge:
+    build: .
+    container_name: terrabridge
+    command: ["uv", "run", "server"]
+    env_file: .env
+    ports:
+      - "8000:8000" # agent
+      - "8001:8001" # mcp
+      - "8002:8002" # llm backend
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: ["gpu"]

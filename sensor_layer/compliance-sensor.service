@@ -1,0 +1,48 @@
+[Unit]
+Description=Terrabridge ISO 27001 Compliance Sensor
+Documentation=https://github.com/terrabridge/mcp_server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+
+# Environment configuration
+Environment="MCP_SERVER_URL=http://mcp-server:8001"
+Environment="SENSOR_SCAN_INTERVAL=300"
+Environment="SENSOR_CRITICAL_INTERVAL=60"
+EnvironmentFile=-/etc/terrabridge/sensor.env
+
+# Working directory
+WorkingDirectory=/opt/terrabridge
+
+# Main process
+ExecStart=/opt/terrabridge/.venv/bin/compliance-sensor
+
+# Restart configuration
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security hardening
+NoNewPrivileges=no
+ProtectSystem=strict
+ProtectHome=read-only
+ReadOnlyPaths=/
+ReadWritePaths=/var/log /tmp
+
+# Resource limits
+MemoryMax=256M
+CPUQuota=20%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=compliance-sensor
+
+[Install]
+WantedBy=multi-user.target
+
