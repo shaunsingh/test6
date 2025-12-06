@@ -163,18 +163,22 @@
           baseEnv = baseSet.mkVirtualEnv "mcp-env-base" depsForSystem;
           vllmEnv = if vllmSet != null then vllmSet.mkVirtualEnv "mcp-env-vllm" vllmDeps else null;
           trtEnv = if trtSet != null then trtSet.mkVirtualEnv "mcp-env-tensorrt" tensorrtDeps else null;
-        in {
+        in
+        {
           base = baseEnv;
-          vllm = vllmEnv;
-          tensorrt = trtEnv;
           default = if vllmEnv != null then vllmEnv else baseEnv;
         }
+        // lib.optionalAttrs (vllmEnv != null) { vllm = vllmEnv; }
+        // lib.optionalAttrs (trtEnv != null) { tensorrt = trtEnv; }
       );
 
       apps = forAll (system: let
         pkgs = legacyPkgs.${system};
         unfree = pkgsUnfree.${system};
         envs = packages.${system};
+        baseEnv = envs.base;
+        vllmEnv = envs.vllm or null;
+        trtEnv = envs.tensorrt or null;
 
         mkLauncher = { name, venv, withWebui ? true, withTensorRT ? false, entry ? "server" }:
           let
@@ -266,11 +270,11 @@
           );
 
         backendEnv = backend:
-          if backend == "tensorrt"
-          then envs.tensorrt
-          else if pkgs.stdenv.isLinux then envs.vllm else envs.base;
+          if backend == "tensorrt" then trtEnv
+          else if backend == "vllm" then vllmEnv
+          else baseEnv;
 
-        mkApp = { label, backend, webui ? true, entry ? "server" }:
+        mkApp = { label, backend ? "base", webui ? true, entry ? "server" }:
           let
             venv = backendEnv backend;
             drv = mkLauncher {
@@ -282,28 +286,33 @@
           in {
             type = "app";
             program = "${drv}/bin/${label}";
+            meta = {
+              description = "Terrabridge launcher (${label}, backend=${backend}, webui=${if webui then "on" else "off"})";
+            };
           };
 
-        baseApps = rec {
-          default = mkApp { label = "terrabridge"; backend = "vllm"; webui = true; entry = "server"; };
+        coreBackend = if pkgs.stdenv.isLinux && vllmEnv != null then "vllm" else "base";
+
+        coreApps = {
+          default = mkApp { label = "terrabridge"; backend = coreBackend; webui = true; entry = "server"; };
+          headless = mkApp { label = "terrabridge-headless"; backend = coreBackend; webui = false; entry = "server"; };
+          mcp-server = mkApp { label = "terrabridge-mcp"; backend = coreBackend; webui = false; entry = "mcp-server"; };
+          agent = mkApp { label = "terrabridge-agent"; backend = coreBackend; webui = false; entry = "agent"; };
+        };
+
+        vllmApps = lib.optionalAttrs (pkgs.stdenv.isLinux && vllmEnv != null) (rec {
           vllm-headless = mkApp { label = "terrabridge-headless"; backend = "vllm"; webui = false; entry = "server"; };
           vllm-mcp-server = mkApp { label = "terrabridge-mcp"; backend = "vllm"; webui = false; entry = "mcp-server"; };
           vllm-agent = mkApp { label = "terrabridge-agent"; backend = "vllm"; webui = false; entry = "agent"; };
-        };
+        });
 
-        tensorrtApps = lib.optionalAttrs pkgs.stdenv.isLinux (rec {
+        tensorrtApps = lib.optionalAttrs (pkgs.stdenv.isLinux && trtEnv != null) (rec {
           tensorrt = mkApp { label = "terrabridge-trt"; backend = "tensorrt"; webui = true; entry = "server"; };
           tensorrt-headless = mkApp { label = "terrabridge-trt-headless"; backend = "tensorrt"; webui = false; entry = "server"; };
           tensorrt-mcp-server = mkApp { label = "terrabridge-trt-mcp"; backend = "tensorrt"; webui = false; entry = "mcp-server"; };
           tensorrt-agent = mkApp { label = "terrabridge-trt-agent"; backend = "tensorrt"; webui = false; entry = "agent"; };
         });
-
-        aliases = {
-          headless = baseApps.vllm-headless;
-          mcp-server = baseApps.vllm-mcp-server;
-          agent = baseApps.vllm-agent;
-        };
-      in baseApps // tensorrtApps // aliases);
+      in coreApps // vllmApps // tensorrtApps);
 
       formatter = forAll (system: legacyPkgs.${system}.nixfmt-rfc-style);
       checks = forAll (system:
