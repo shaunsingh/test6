@@ -141,10 +141,7 @@
                       buildInputs = (old.buildInputs or [ ]) ++ cudaLibs;
                       propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
                       autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ cudaLibPaths;
-                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
-                        "libcuda.so.1"
-                        "libnvshmem_host.so.3"
-                      ];
+                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [ "libcuda.so.1" ];
                     }
                   );
                 patchHpc =
@@ -181,6 +178,12 @@
                       autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [ "${pkgs.tbb}/lib" ];
                     }
                   );
+
+                "etcd3" =
+                  prev."etcd3".overrideAttrs (old: {
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
+                    buildInputs = (old.buildInputs or [ ]) ++ [ final."setuptools" ];
+                  });
 
                 "terrabridge-mcp" = prev."terrabridge-mcp".overrideAttrs (old: {
                   passthru = (old.passthru or { }) // {
