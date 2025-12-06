@@ -147,24 +147,21 @@
                     }
                   );
 
+                "nvidia-cusparse-cu12" =
+                  prev."nvidia-cusparse-cu12".overrideAttrs (old:
+                    lib.optionalAttrs stdenv.isLinux {
+                      nativeBuildInputs = addCuda (old.nativeBuildInputs or [ ]);
+                      buildInputs = addCuda (old.buildInputs or [ ]);
+                      propagatedBuildInputs = addCuda (old.propagatedBuildInputs or [ ]);
+                    }
+                  );
+
                 "nvidia-cusolver-cu12" =
                   prev."nvidia-cusolver-cu12".overrideAttrs (old:
                     lib.optionalAttrs stdenv.isLinux {
-                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ];
-                      buildInputs =
-                        (old.buildInputs or [ ])
-                        ++ [
-                          pkgs.cudaPackages_12.libnvjitlink
-                          pkgs.cudaPackages_12.libcusparse
-                          pkgs.cudaPackages_12.libcublas
-                        ];
-                      autoPatchelfExtraLibs =
-                        (old.autoPatchelfExtraLibs or [ ])
-                        ++ [
-                          "${pkgs.cudaPackages_12.libnvjitlink}/lib"
-                          "${pkgs.cudaPackages_12.libcusparse}/lib"
-                          "${pkgs.cudaPackages_12.libcublas}/lib"
-                        ];
+                      nativeBuildInputs = addCuda (old.nativeBuildInputs or [ ]);
+                      buildInputs = addCuda (old.buildInputs or [ ]);
+                      propagatedBuildInputs = addCuda (old.propagatedBuildInputs or [ ]);
                     }
                   );
 
