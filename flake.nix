@@ -85,17 +85,6 @@
                   };
                 });
               }
-              // (lib.optionalAttrs
-                (prev.stdenv.isLinux
-                  && lib.elem "tensorrt" (depsSpec."terrabridge-mcp" or [])
-                  && (prev ? nvidia-cufile-cu12.overridePythonAttrs)
-                  && (prev ? rdma-core)) {
-                # nvidia-cufile wheel needs RDMA libs for patchelf; add rdma-core when supported
-                nvidia-cufile-cu12 = prev.nvidia-cufile-cu12.overridePythonAttrs (old: {
-                  buildInputs = (old.buildInputs or []) ++ [ prev.rdma-core ];
-                  propagatedBuildInputs = (old.propagatedBuildInputs or []) ++ [ prev.rdma-core ];
-                });
-              })
             )
           ];
           pyprojectPackages = pkgs.callPackage pyproject-nix.build.packages { python = pkgs.python313; };
@@ -105,11 +94,10 @@
       pythonSets = forAll (system:
         let
           pkgs = legacyPkgs.${system};
-          isLinux = pkgs.stdenv.isLinux;
-          depsForSystem = if isLinux then vllmDeps else darwinDeps;
+          depsForSystem = if pkgs.stdenv.isLinux then vllmDeps else darwinDeps;
           baseSet = mkPythonSet pkgs depsForSystem;
-          vllmSet = if isLinux then baseSet else null;
-          trtSet = if isLinux then mkPythonSet pkgs tensorrtDeps else null;
+          vllmSet = if pkgs.stdenv.isLinux then baseSet else null;
+          trtSet = if pkgs.stdenv.isLinux then mkPythonSet pkgs tensorrtDeps else null;
         in {
           inherit depsForSystem;
           base = baseSet;
@@ -121,9 +109,9 @@
       pkgsUnfree = forAll (system: import nixpkgs {
         inherit system;
         config.allowUnfreePredicate = pkg: lib.getName pkg == "open-webui";
-        config.allowBroken = true;
         overlays = [(final: prev: {
           python313Packages = prev.python313Packages.overrideScope (_: p: { pgvector = p.pgvector.overridePythonAttrs (_: { doCheck = false; }); });
+          open-webui = prev.open-webui.overrideAttrs (old: { meta = (old.meta or {}) // { broken = false; }; });
         })];
       });
     in rec {
@@ -256,50 +244,40 @@
           then envs.tensorrt
           else if pkgs.stdenv.isLinux then envs.vllm else envs.base;
 
-        baseVariants = [
-          { name = "default"; label = "terrabridge"; backend = "vllm"; webui = true; entry = "server"; }
-          { name = "vllm-headless"; label = "terrabridge-headless"; backend = "vllm"; webui = false; entry = "server"; }
-          { name = "vllm-mcp-server"; label = "terrabridge-mcp"; backend = "vllm"; webui = false; entry = "mcp-server"; }
-          { name = "vllm-agent"; label = "terrabridge-agent"; backend = "vllm"; webui = false; entry = "agent"; }
-        ];
-
-        tensorrtVariants =
-          lib.optionals (pkgs.stdenv.isLinux && envs.tensorrt != null) [
-            { name = "tensorrt"; label = "terrabridge-trt"; backend = "tensorrt"; webui = true; entry = "server"; }
-            { name = "tensorrt-headless"; label = "terrabridge-trt-headless"; backend = "tensorrt"; webui = false; entry = "server"; }
-            { name = "tensorrt-mcp-server"; label = "terrabridge-trt-mcp"; backend = "tensorrt"; webui = false; entry = "mcp-server"; }
-            { name = "tensorrt-agent"; label = "terrabridge-trt-agent"; backend = "tensorrt"; webui = false; entry = "agent"; }
-          ];
-
-        appsForSystem =
+        mkApp = { label, backend, webui ? true, entry ? "server" }:
           let
-            mkApp = v:
-              let
-                venv = backendEnv v.backend;
-                drv = mkLauncher {
-                  name = v.label;
-                  venv = venv;
-                  withWebui = v.webui;
-                  withTensorRT = v.backend == "tensorrt";
-                  entry = v.entry;
-                };
-              in lib.nameValuePair v.name { type = "app"; program = "${drv}/bin/${v.label}"; };
+            venv = backendEnv backend;
+            drv = mkLauncher {
+              name = label;
+              inherit venv entry;
+              withWebui = webui;
+              withTensorRT = backend == "tensorrt";
+            };
+          in {
+            type = "app";
+            program = "${drv}/bin/${label}";
+          };
 
-            appsList = builtins.map mkApp (baseVariants ++ tensorrtVariants);
-            appsSet = lib.listToAttrs appsList;
+        baseApps = rec {
+          default = mkApp { label = "terrabridge"; backend = "vllm"; webui = true; entry = "server"; };
+          vllm-headless = mkApp { label = "terrabridge-headless"; backend = "vllm"; webui = false; entry = "server"; };
+          vllm-mcp-server = mkApp { label = "terrabridge-mcp"; backend = "vllm"; webui = false; entry = "mcp-server"; };
+          vllm-agent = mkApp { label = "terrabridge-agent"; backend = "vllm"; webui = false; entry = "agent"; };
+        };
 
-            aliasPairs = [
-              { alias = "headless"; target = "vllm-headless"; }
-              { alias = "mcp-server"; target = "vllm-mcp-server"; }
-              { alias = "agent"; target = "vllm-agent"; }
-            ];
+        tensorrtApps = lib.optionalAttrs pkgs.stdenv.isLinux (rec {
+          tensorrt = mkApp { label = "terrabridge-trt"; backend = "tensorrt"; webui = true; entry = "server"; };
+          tensorrt-headless = mkApp { label = "terrabridge-trt-headless"; backend = "tensorrt"; webui = false; entry = "server"; };
+          tensorrt-mcp-server = mkApp { label = "terrabridge-trt-mcp"; backend = "tensorrt"; webui = false; entry = "mcp-server"; };
+          tensorrt-agent = mkApp { label = "terrabridge-trt-agent"; backend = "tensorrt"; webui = false; entry = "agent"; };
+        });
 
-            aliases = lib.listToAttrs (lib.concatMap (p:
-              lib.optional (builtins.hasAttr p.target appsSet)
-                (lib.nameValuePair p.alias appsSet.${p.target})
-            ) aliasPairs);
-          in appsSet // aliases;
-      in appsForSystem);
+        aliases = {
+          headless = baseApps.vllm-headless;
+          mcp-server = baseApps.vllm-mcp-server;
+          agent = baseApps.vllm-agent;
+        };
+      in baseApps // tensorrtApps // aliases);
 
       formatter = forAll (system: legacyPkgs.${system}.nixfmt-rfc-style);
       checks = forAll (system:
