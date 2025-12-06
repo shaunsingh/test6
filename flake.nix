@@ -165,6 +165,15 @@
                     }
                   );
 
+                "nvidia-cutlass-dsl" =
+                  prev."nvidia-cutlass-dsl".overrideAttrs (old:
+                    lib.optionalAttrs stdenv.isLinux {
+                      nativeBuildInputs = addCuda (old.nativeBuildInputs or [ ]);
+                      buildInputs = addCuda (old.buildInputs or [ ]);
+                      propagatedBuildInputs = addCuda (old.propagatedBuildInputs or [ ]);
+                    }
+                  );
+
                 "numba" =
                   prev."numba".overrideAttrs (old:
                     lib.optionalAttrs stdenv.isLinux {
