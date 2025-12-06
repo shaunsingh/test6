@@ -119,6 +119,7 @@
                     libcurand
                     libcusparse
                     libcublas
+                    libnvjitlink
                     nccl
                     cudnn
                     libcusolver
@@ -143,6 +144,27 @@
                       buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.rdma-core ];
                       propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pkgs.rdma-core ];
                       autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [ "${pkgs.rdma-core}/lib" ];
+                    }
+                  );
+
+                "nvidia-cusolver-cu12" =
+                  prev."nvidia-cusolver-cu12".overrideAttrs (old:
+                    lib.optionalAttrs stdenv.isLinux {
+                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ];
+                      buildInputs =
+                        (old.buildInputs or [ ])
+                        ++ [
+                          pkgs.cudaPackages_12.libnvjitlink
+                          pkgs.cudaPackages_12.libcusparse
+                          pkgs.cudaPackages_12.libcublas
+                        ];
+                      autoPatchelfExtraLibs =
+                        (old.autoPatchelfExtraLibs or [ ])
+                        ++ [
+                          "${pkgs.cudaPackages_12.libnvjitlink}/lib"
+                          "${pkgs.cudaPackages_12.libcusparse}/lib"
+                          "${pkgs.cudaPackages_12.libcublas}/lib"
+                        ];
                     }
                   );
 
