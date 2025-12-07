@@ -272,7 +272,7 @@
                   in
                   [
                     "${torch}/lib"
-                    "${torch}/lib/${pythonLibDir}/torch/lib"
+                    "${torch}/${pythonLibDir}/torch/lib"
                   ];
                 patchTorchDeps =
                   pkg:
@@ -293,11 +293,11 @@
                 "nvidia-cutlass-dsl" = patchCuda prev."nvidia-cutlass-dsl";
                 "torch" = patchCuda prev."torch";
                 "triton" = patchCuda prev."triton";
-                "vllm" = patchCuda prev."vllm";
 
                 "nvidia-nvshmem-cu12" = patchHpc prev."nvidia-nvshmem-cu12";
                 "nvidia-cufile-cu12" = patchHpc prev."nvidia-cufile-cu12";
 
+                "vllm" = patchTorchDeps (patchCuda prev."vllm");
                 "torchvision" = patchTorchDeps (patchCuda prev."torchvision");
                 "torchaudio" = patchTorchDeps (patchCuda prev."torchaudio");
 
