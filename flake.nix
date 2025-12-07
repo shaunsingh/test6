@@ -268,6 +268,26 @@
                       propagatedBuildInputs = hpcLibs;
                     } old
                   );
+                torchLibPaths =
+                  let
+                    torch = final."torch";
+                    pythonLibDir = "${pkgs.python312.libPrefix}/site-packages";
+                  in
+                  [
+                    "${torch}/lib"
+                    "${torch}/lib/${pythonLibDir}/torch/lib"
+                  ];
+                patchTorchDeps =
+                  pkg:
+                  pkg.overrideAttrs (old: {
+                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ torchLibPaths;
+                    }
+                    // extendInputs {
+                      nativeBuildInputs = [ final."torch" ];
+                      buildInputs = [ final."torch" ];
+                      propagatedBuildInputs = [ final."torch" ];
+                    } old
+                  );
               in
               lib.optionalAttrs pkgs.stdenv.isLinux {
                 "cupy-cuda12x" = patchCuda prev."cupy-cuda12x";
@@ -275,13 +295,14 @@
                 "nvidia-cusolver-cu12" = patchCuda prev."nvidia-cusolver-cu12";
                 "nvidia-cutlass-dsl" = patchCuda prev."nvidia-cutlass-dsl";
                 "torch" = patchCuda prev."torch";
-                "torchvision" = patchCuda prev."torchvision";
-                "torchaudio" = patchCuda prev."torchaudio";
                 "triton" = patchCuda prev."triton";
                 "vllm" = patchCuda prev."vllm";
 
                 "nvidia-nvshmem-cu12" = patchHpc prev."nvidia-nvshmem-cu12";
                 "nvidia-cufile-cu12" = patchHpc prev."nvidia-cufile-cu12";
+
+                "torchvision" = patchTorchDeps (patchCuda prev."torchvision");
+                "torchaudio" = patchTorchDeps (patchCuda prev."torchaudio");
 
                 "numba" = prev."numba".overrideAttrs (old: {
                     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ];
