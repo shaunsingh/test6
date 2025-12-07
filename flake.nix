@@ -268,11 +268,14 @@
                 torchLibPaths =
                   let
                     torch = final."torch";
+                    torchLib = lib.getLib torch;
                     pythonLibDir = "${pkgs.python312.libPrefix}/site-packages";
                   in
                   [
                     "${torch}/lib"
+                    "${torchLib}/lib"
                     "${torch}/${pythonLibDir}/torch/lib"
+                    "${torchLib}/${pythonLibDir}/torch/lib"
                   ];
                 patchTorchDeps =
                   pkg:
