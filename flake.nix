@@ -269,9 +269,7 @@
                   let
                     torch = final."torch";
                     torchLib = lib.getLib torch;
-                    pythonLibDirs =
-                      [ "${pkgs.python312.libPrefix}/site-packages" ]
-                      ++ lib.optional (pkgs ? python313) "${pkgs.python313.libPrefix}/site-packages";
+                    pythonLibDirs = [ "${pkgs.python312.libPrefix}/site-packages" ]
                   in
                   lib.unique (
                     [
@@ -304,7 +302,7 @@
                 "nvidia-cusparse-cu12" = patchCuda prev."nvidia-cusparse-cu12";
                 "nvidia-cusolver-cu12" = patchCuda prev."nvidia-cusolver-cu12";
                 "nvidia-cutlass-dsl" = patchCuda prev."nvidia-cutlass-dsl";
-                "torch" = patchCuda prev."torch";
+                "torch" = patchTorchDeps (patchCuda prev."torch");
                 "triton" = patchCuda prev."triton";
 
                 "nvidia-nvshmem-cu12" = patchHpc prev."nvidia-nvshmem-cu12";
