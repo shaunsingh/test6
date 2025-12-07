@@ -2,8 +2,9 @@ version = 1
 revision = 3
 requires-python = ">=3.12"
 conflicts = [[
-    { package = "terrabridge-mcp", group = "tensorrt" },
-    { package = "terrabridge-mcp", group = "vllm" },
+    { package = "terrabridge-mcp", extra = "mlx" },
+    { package = "terrabridge-mcp", extra = "tensorrt" },
+    { package = "terrabridge-mcp", extra = "vllm" },
 ]]
 
 [[package]]
@@ -106,7 +107,7 @@ version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "frozenlist" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/61/62/06741b579156360248d1ec624842ad0edf697050bbaf7c3e46394e106ad1/aiosignal-1.4.0.tar.gz", hash = "sha256:f47eecd9468083c2029cc99945502cb7708b082c232f9aca65da147157b251c7", size = 25007, upload-time = "2025-07-03T22:54:43.528Z" }
 wheels = [
@@ -156,7 +157,7 @@ version = "4.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "idna" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/16/ce/8a777047513153587e5434fd752e89334ac33e379aa3497db860eeb60377/anyio-4.12.0.tar.gz", hash = "sha256:73c693b567b0c55130c104d0b43a9baf3aa6a31fc6110116509f27bf75e21ec0", size = 228266, upload-time = "2025-11-28T23:37:38.911Z" }
 wheels = [
@@ -372,7 +373,7 @@ name = "cffi"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pycparser", marker = "implementation_name != 'PyPy' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "pycparser", marker = "implementation_name != 'PyPy' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/eb/56/b1ba7935a17738ae8453301356628e8147c79dbb825bcbc73dc7401f9846/cffi-2.0.0.tar.gz", hash = "sha256:44d1b5909021139fe36001ae048dbdde8214afa20200eda0f64c068cac5d5529", size = 523588, upload-time = "2025-09-08T23:24:04.541Z" }
 wheels = [
@@ -486,7 +487,7 @@ name = "click"
 version = "8.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/60/6c/8ca2efa64cf75a977a0d7fac081354553ebe483345c734fb6b6515d96bbc/click-8.2.1.tar.gz", hash = "sha256:27c491cc05d968d271d5a1db13e3b5a184636d9d930f148c50b038f0d0646202", size = 286342, upload-time = "2025-05-20T23:19:49.832Z" }
 wheels = [
@@ -531,7 +532,7 @@ name = "cryptography"
 version = "46.0.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi", marker = "platform_python_implementation != 'PyPy' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "cffi", marker = "platform_python_implementation != 'PyPy' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9f/33/c00162f49c0e2fe8064a62cb92b93e50c74a72bc370ab92f86112b33ff62/cryptography-46.0.3.tar.gz", hash = "sha256:a8b17438104fed022ce745b362294d9ce35b4c2e45c1d958ad4a4b019285f4a1", size = 749258, upload-time = "2025-10-15T23:18:31.74Z" }
 wheels = [
@@ -760,7 +761,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -785,11 +786,11 @@ wheels = [
 [package.optional-dependencies]
 standard = [
     { name = "email-validator" },
-    { name = "fastapi-cli", extra = ["standard"] },
+    { name = "fastapi-cli", extra = ["standard"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
     { name = "httpx" },
     { name = "jinja2" },
     { name = "python-multipart" },
-    { name = "uvicorn", extra = ["standard"] },
+    { name = "uvicorn", extra = ["standard"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 
 [[package]]
@@ -799,7 +800,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "rich-toolkit" },
     { name = "typer" },
-    { name = "uvicorn", extra = ["standard"] },
+    { name = "uvicorn", extra = ["standard"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/99/75/9407a6b452be4c988feacec9c9d2f58d8f315162a6c7258d5a649d933ebe/fastapi_cli-0.0.16.tar.gz", hash = "sha256:e8a2a1ecf7a4e062e3b2eec63ae34387d1e142d4849181d936b23c4bdfe29073", size = 19447, upload-time = "2025-11-10T19:01:07.856Z" }
 wheels = [
@@ -809,7 +810,7 @@ wheels = [
 [package.optional-dependencies]
 standard = [
     { name = "fastapi-cloud-cli" },
-    { name = "uvicorn", extra = ["standard"] },
+    { name = "uvicorn", extra = ["standard"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 
 [[package]]
@@ -819,12 +820,12 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastar" },
     { name = "httpx" },
-    { name = "pydantic", extra = ["email"] },
+    { name = "pydantic", extra = ["email"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
     { name = "rich-toolkit" },
     { name = "rignore" },
     { name = "sentry-sdk" },
     { name = "typer" },
-    { name = "uvicorn", extra = ["standard"] },
+    { name = "uvicorn", extra = ["standard"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/27/6c/32527a1fd7eee91dd0c52bbe6b7c21e3272b24beb436b142b2c9c01f922d/fastapi_cloud_cli-0.5.2.tar.gz", hash = "sha256:34d04ffadb2562c3ebb39e6f5a599c47353750f75a2ef0a2d9c1442ed09f3308", size = 30744, upload-time = "2025-11-25T11:06:14.583Z" }
 wheels = [
@@ -1281,7 +1282,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock" },
     { name = "fsspec" },
-    { name = "hf-xet", marker = "platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "hf-xet", marker = "platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64'" },
     { name = "packaging" },
     { name = "pyyaml" },
     { name = "requests" },
@@ -1522,8 +1523,8 @@ name = "loguru"
 version = "0.7.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "win32-setctime", marker = "sys_platform == 'win32' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "win32-setctime", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/3a/05/a1dae3dffd1116099471c643b8924f5aa6524411dc6c63fdae648c4f1aca/loguru-0.7.3.tar.gz", hash = "sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6", size = 63559, upload-time = "2024-12-06T11:20:56.608Z" }
 wheels = [
@@ -1618,12 +1619,12 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pyjwt", extra = ["crypto"] },
     { name = "python-multipart" },
-    { name = "pywin32", marker = "sys_platform == 'win32' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "pywin32", marker = "sys_platform == 'win32' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
     { name = "sse-starlette" },
     { name = "starlette" },
     { name = "typing-extensions" },
     { name = "typing-inspection" },
-    { name = "uvicorn", marker = "sys_platform != 'emscripten' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "uvicorn", marker = "sys_platform != 'emscripten' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/12/42/10c0c09ca27aceacd8c428956cfabdd67e3d328fe55c4abc16589285d294/mcp-1.23.1.tar.gz", hash = "sha256:7403e053e8e2283b1e6ae631423cb54736933fea70b32422152e6064556cd298", size = 596519, upload-time = "2025-12-02T18:41:12.807Z" }
 wheels = [
@@ -1648,7 +1649,7 @@ dependencies = [
     { name = "numpy" },
     { name = "pillow" },
     { name = "pydantic" },
-    { name = "pydantic-extra-types", extra = ["pycountry"] },
+    { name = "pydantic-extra-types", extra = ["pycountry"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
     { name = "requests" },
     { name = "tiktoken" },
     { name = "typing-extensions" },
@@ -1668,7 +1669,7 @@ name = "mlx"
 version = "0.30.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "mlx-metal", marker = "sys_platform == 'darwin' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "mlx-metal", marker = "sys_platform == 'darwin'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/94/a3/32c4c05d8967591e2a1a1e7e3fc9cece8821f5aea8ac8f3bcfdb203f4722/mlx-0.30.0-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:11fbae58b1e992afdec6709d5e281932871a0138582a794cdcc82ff895a28670", size = 554567, upload-time = "2025-11-20T16:45:12.73Z" },
@@ -1694,7 +1695,7 @@ version = "0.28.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jinja2" },
-    { name = "mlx", marker = "sys_platform == 'darwin' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "mlx", marker = "sys_platform == 'darwin'" },
     { name = "numpy" },
     { name = "protobuf" },
     { name = "pyyaml" },
@@ -2917,7 +2918,7 @@ name = "pytest"
 version = "9.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
     { name = "iniconfig" },
     { name = "packaging" },
     { name = "pluggy" },
@@ -3022,7 +3023,7 @@ name = "pyzmq"
 version = "27.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi", marker = "implementation_name == 'pypy' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "cffi", marker = "implementation_name == 'pypy'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/04/0b/3c9baedbdf613ecaa7aa07027780b8867f57b6293b6ee50de316c9f3222b/pyzmq-27.1.0.tar.gz", hash = "sha256:ac0765e3d44455adb6ddbf4417dcce460fc40a05978c08efdf2948072f6db540", size = 281750, upload-time = "2025-09-08T23:10:18.157Z" }
 wheels = [
@@ -3086,7 +3087,7 @@ wheels = [
 
 [package.optional-dependencies]
 cgraph = [
-    { name = "cupy-cuda12x", marker = "sys_platform != 'darwin' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "cupy-cuda12x", marker = "sys_platform != 'darwin'" },
 ]
 
 [[package]]
@@ -3096,7 +3097,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "rpds-py" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/2f/db/98b5c277be99dd18bfd91dd04e1b759cad18d1a338188c936e92f921c7e2/referencing-0.36.2.tar.gz", hash = "sha256:df2e89862cd09deabbdba16944cc3f10feb6b3e6f18e902f7cc25609a34775aa", size = 74744, upload-time = "2025-01-25T08:48:16.138Z" }
 wheels = [
@@ -3667,7 +3668,7 @@ version = "0.50.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra == 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ba/b8/73a0e6a6e079a9d9cfa64113d771e421640b6f679a52eeb9b32f72d871a1/starlette-0.50.0.tar.gz", hash = "sha256:a2a17b22203254bcbc2e1f926d2d55f3f9497f769416b3190768befe598fa3ca", size = 2646985, upload-time = "2025-11-01T15:25:27.516Z" }
 wheels = [
@@ -3718,19 +3719,21 @@ dependencies = [
     { name = "cassandra-driver" },
     { name = "fastmcp" },
     { name = "httpx", extra = ["http2"] },
-    { name = "mlx", marker = "sys_platform == 'darwin' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "mlx-lm", marker = "sys_platform == 'darwin' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
     { name = "pydantic" },
     { name = "python-dotenv" },
 ]
 
 [package.optional-dependencies]
+mlx = [
+    { name = "mlx", marker = "sys_platform == 'darwin'" },
+    { name = "mlx-lm", marker = "sys_platform == 'darwin'" },
+]
 tensorrt = [
-    { name = "etcd3" },
-    { name = "tensorrt-llm" },
+    { name = "etcd3", marker = "sys_platform == 'linux'" },
+    { name = "tensorrt-llm", marker = "sys_platform == 'linux'" },
 ]
 vllm = [
-    { name = "vllm", marker = "sys_platform == 'linux' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "vllm", marker = "sys_platform == 'linux'" },
 ]
 
 [package.dev-dependencies]
@@ -3745,17 +3748,17 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "cassandra-driver", specifier = ">=3.29.3" },
-    { name = "etcd3", marker = "extra == 'tensorrt'", git = "https://github.com/kragniz/python-etcd3.git?rev=e58a899579ba416449c4e225b61f039457c8072a" },
+    { name = "etcd3", marker = "sys_platform == 'linux' and extra == 'tensorrt'", git = "https://github.com/kragniz/python-etcd3.git?rev=e58a899579ba416449c4e225b61f039457c8072a" },
     { name = "fastmcp", specifier = ">=2.13.2" },
     { name = "httpx", extras = ["http2"], specifier = ">=0.28.1" },
-    { name = "mlx", marker = "sys_platform == 'darwin'", specifier = ">=0.30.0" },
-    { name = "mlx-lm", marker = "sys_platform == 'darwin'", specifier = ">=0.28.3" },
+    { name = "mlx", marker = "sys_platform == 'darwin' and extra == 'mlx'", specifier = ">=0.30.0" },
+    { name = "mlx-lm", marker = "sys_platform == 'darwin' and extra == 'mlx'", specifier = ">=0.28.3" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
-    { name = "tensorrt-llm", marker = "extra == 'tensorrt'", specifier = ">=1.2.0rc4" },
+    { name = "tensorrt-llm", marker = "sys_platform == 'linux' and extra == 'tensorrt'", specifier = ">=1.2.0rc4" },
     { name = "vllm", marker = "sys_platform == 'linux' and extra == 'vllm'", specifier = ">=0.12.0" },
 ]
-provides-extras = ["tensorrt", "vllm"]
+provides-extras = ["mlx", "vllm", "tensorrt"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -3845,24 +3848,24 @@ dependencies = [
     { name = "fsspec" },
     { name = "jinja2" },
     { name = "networkx" },
-    { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-cuda-runtime-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-cudnn-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-cufft-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-cufile-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-curand-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-cusolver-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-cusparse-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-cusparselt-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-nccl-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-nvshmem-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
-    { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "nvidia-cublas-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cuda-cupti-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cuda-nvrtc-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cuda-runtime-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cudnn-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cufft-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cufile-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-curand-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cusolver-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cusparse-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cusparselt-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-nccl-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-nvjitlink-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-nvshmem-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-nvtx-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "setuptools" },
     { name = "sympy" },
-    { name = "triton", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "triton", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "typing-extensions" },
 ]
 wheels = [
@@ -3955,7 +3958,7 @@ name = "tqdm"
 version = "4.67.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737, upload-time = "2024-11-24T20:12:22.481Z" }
 wheels = [
@@ -4060,11 +4063,11 @@ wheels = [
 
 [package.optional-dependencies]
 standard = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "httptools" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
-    { name = "uvloop", marker = "(platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32') or (platform_python_implementation == 'PyPy' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform == 'cygwin' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform == 'win32' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "uvloop", marker = "platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'" },
     { name = "watchfiles" },
     { name = "websockets" },
 ]
@@ -4116,14 +4119,14 @@ dependencies = [
     { name = "depyf" },
     { name = "diskcache" },
     { name = "einops" },
-    { name = "fastapi", extra = ["standard"] },
+    { name = "fastapi", extra = ["standard"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
     { name = "filelock" },
     { name = "flashinfer-python" },
     { name = "gguf" },
     { name = "lark" },
-    { name = "llguidance", marker = "platform_machine == 'aarch64' or platform_machine == 'arm64' or platform_machine == 'ppc64le' or platform_machine == 's390x' or platform_machine == 'x86_64' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "llguidance", marker = "platform_machine == 'aarch64' or platform_machine == 'arm64' or platform_machine == 'ppc64le' or platform_machine == 's390x' or platform_machine == 'x86_64'" },
     { name = "lm-format-enforcer" },
-    { name = "mistral-common", extra = ["image"] },
+    { name = "mistral-common", extra = ["image"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
     { name = "model-hosting-container-standards" },
     { name = "msgspec" },
     { name = "ninja" },
@@ -4145,7 +4148,7 @@ dependencies = [
     { name = "python-json-logger" },
     { name = "pyyaml" },
     { name = "pyzmq" },
-    { name = "ray", extra = ["cgraph"] },
+    { name = "ray", extra = ["cgraph"], marker = "(extra == 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-tensorrt') or (extra != 'extra-15-terrabridge-mcp-tensorrt' and extra == 'extra-15-terrabridge-mcp-vllm') or (extra != 'extra-15-terrabridge-mcp-mlx' and extra == 'extra-15-terrabridge-mcp-vllm')" },
     { name = "regex" },
     { name = "requests" },
     { name = "scipy" },
@@ -4162,7 +4165,7 @@ dependencies = [
     { name = "transformers" },
     { name = "typing-extensions" },
     { name = "watchfiles" },
-    { name = "xgrammar", marker = "platform_machine == 'aarch64' or platform_machine == 'arm64' or platform_machine == 'ppc64le' or platform_machine == 's390x' or platform_machine == 'x86_64' or (extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "xgrammar", marker = "platform_machine == 'aarch64' or platform_machine == 'arm64' or platform_machine == 'ppc64le' or platform_machine == 's390x' or platform_machine == 'x86_64'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/3d/70/ce6104d49a8139d055fbe4db3ddbb4e670be2f5db2172e590623efb26537/vllm-0.12.0.tar.gz", hash = "sha256:dc2863be80260f378f1e72f9b82b4009610e434d05fdd7067383b231b89c4f4a", size = 17594403, upload-time = "2025-12-03T11:38:16.393Z" }
 wheels = [
@@ -4285,13 +4288,13 @@ name = "xgrammar"
 version = "0.1.27"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "mlx-lm", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or (platform_machine != 'arm64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'darwin' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "mlx-lm", marker = "platform_machine == 'arm64' and sys_platform == 'darwin'" },
     { name = "ninja" },
     { name = "numpy" },
     { name = "pydantic" },
     { name = "torch" },
     { name = "transformers" },
-    { name = "triton", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm') or (sys_platform != 'linux' and extra == 'group-15-terrabridge-mcp-tensorrt' and extra == 'group-15-terrabridge-mcp-vllm')" },
+    { name = "triton", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/62/e1/b522b1e50fddd773d368c2945ef5ed628aa90c0c972027f9aa5a51d6d4f9/xgrammar-0.1.27.tar.gz", hash = "sha256:40af7bb2891f1633ec7f660723c74a92a963307d283aca9e3b4e53a0feaf1d46", size = 2303435, upload-time = "2025-11-04T03:11:53.512Z" }

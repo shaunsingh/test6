@@ -10,23 +10,26 @@ dependencies = [
     "pydantic>=2.12.5",
     "cassandra-driver>=3.29.3",
     "python-dotenv>=1.2.1",
+]
+
+# tensorrt is mutually exclusive with vllm
+[project.optional-dependencies]
+mlx = [
     "mlx>=0.30.0; sys_platform == 'darwin'",
     "mlx-lm>=0.28.3; sys_platform == 'darwin'",
 ]
-
-# note: tensorrt is an alternative to vllm on linux (mutually exclusive)
-[project.optional-dependencies]
-tensorrt = [
-    "tensorrt-llm>=1.2.0rc4",
-    "etcd3 @ git+https://github.com/kragniz/python-etcd3.git@e58a899579ba416449c4e225b61f039457c8072a",
-]
 vllm = ["vllm>=0.12.0; sys_platform == 'linux'"]
+tensorrt = [
+    "tensorrt-llm>=1.2.0rc4; sys_platform == 'linux'",
+    "etcd3 @ git+https://github.com/kragniz/python-etcd3.git@e58a899579ba416449c4e225b61f039457c8072a#egg=etcd3",
+]
 
 [tool.uv]
 conflicts = [
     [
-      { extra = "tensorrt" },
+      { extra = "mlx" },
       { extra = "vllm" },
+      { extra = "tensorrt" }
     ],
 ]
 
