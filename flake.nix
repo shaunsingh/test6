@@ -269,19 +269,28 @@
                   let
                     torch = final."torch";
                     torchLib = lib.getLib torch;
-                    pythonLibDir = "${pkgs.python312.libPrefix}/site-packages";
+                    pythonLibDirs =
+                      [ "${pkgs.python312.libPrefix}/site-packages" ]
+                      ++ lib.optional (pkgs ? python313) "${pkgs.python313.libPrefix}/site-packages";
                   in
-                  [
-                    "${torch}/lib"
-                    "${torchLib}/lib"
-                    "${torch}/${pythonLibDir}/torch/lib"
-                    "${torchLib}/${pythonLibDir}/torch/lib"
-                  ];
+                  lib.unique (
+                    [
+                      "${torch}/lib"
+                      "${torchLib}/lib"
+                      "${torch}/lib64"
+                      "${torchLib}/lib64"
+                    ]
+                    ++ lib.concatMap (dir: [
+                      "${torch}/${dir}/torch/lib"
+                      "${torchLib}/${dir}/torch/lib"
+                    ]) pythonLibDirs
+                  );
                 patchTorchDeps =
                   pkg:
                   pkg.overrideAttrs (old: {
                       autoPatchelfExtraLibs = lib.unique ((old.autoPatchelfExtraLibs or [ ]) ++ torchLibPaths);
                       autoPatchelfLibs = lib.unique ((old.autoPatchelfLibs or [ ]) ++ torchLibPaths);
+                      autoPatchelfExtraRPaths = lib.unique ((old.autoPatchelfExtraRPaths or [ ]) ++ torchLibPaths);
                     }
                     // extendInputs {
                       nativeBuildInputs = [ final."torch" ];
