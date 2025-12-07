@@ -280,7 +280,8 @@
                 patchTorchDeps =
                   pkg:
                   pkg.overrideAttrs (old: {
-                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ torchLibPaths;
+                      autoPatchelfExtraLibs = lib.unique ((old.autoPatchelfExtraLibs or [ ]) ++ torchLibPaths);
+                      autoPatchelfLibs = lib.unique ((old.autoPatchelfLibs or [ ]) ++ torchLibPaths);
                     }
                     // extendInputs {
                       nativeBuildInputs = [ final."torch" ];
