@@ -15,6 +15,7 @@
 
   inputs = {
     nixpkgs.url = "github:flox/nixpkgs/unstable";
+    nixpkgs-24-05.url = "github:NixOS/nixpkgs/nixos-24.05";
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     gitignore = {
@@ -127,6 +128,7 @@
             };
 
           pkgs = mkPkgs nixpkgs;
+          legacyPkgs = mkPkgs inputs."nixpkgs-24-05";
 
           runtimeBackends = {
             vllm = {
@@ -202,7 +204,7 @@
             (
               final: prev:
               let
-                cudaLibs = with pkgs.cudaPackages_12; [
+                cudaLibs = (with pkgs.cudaPackages_12; [
                   cudatoolkit
                   cuda_cudart
                   cuda_cupti
@@ -219,7 +221,9 @@
                   libnvshmem
                   nccl
                   cudnn
-                ];
+                ]) ++ (with legacyPkgs.cudaPackages_12; [ 
+                  cudnn 
+                ]);
                 cudaLibPaths = lib.concatMap (x: [
                   "${x}/lib"
                   "${x}/lib64"
