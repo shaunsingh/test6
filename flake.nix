@@ -347,7 +347,7 @@
                   "etcd3" = addSetupTools "etcd3" prev."etcd3";
                   "flashinfer-python" = addSetupTools "flashinfer-python" prev."flashinfer-python";
 
-                  "tensorrt-cu13" = addSetupTools (cudapatch "tensorrt-cu13" prev."tensorrt-cu13");
+                  "tensorrt-cu13" = addSetupTools (cudaPatch "tensorrt-cu13" prev."tensorrt-cu13");
 
                   # I never got the patch working but it works w/o
                   "torchaudio" =
