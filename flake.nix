@@ -14,6 +14,7 @@
   };
 
   inputs = {
+    # cuda cache is built against flox nixpkgs, 24.05 @ cudnn8
     nixpkgs.url = "github:flox/nixpkgs/unstable";
     nixpkgs-24-05.url = "github:NixOS/nixpkgs/nixos-24.05";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -75,6 +76,7 @@
 
           pkgsConfig = {
             allowUnfreePredicate =
+              # nvidia libs & open-webui are under prop license
               pkg:
               let
                 rawLicenses = pkg.meta.license or null;
@@ -95,6 +97,7 @@
                 (license.free or false)
                 || lib.elem (license.shortName or license.fullName or license.name or "") allowedCudaLicenses
               ) licenses;
+            # enable cuda cache
             cudaSupport = true;
             cudaVersion = "12";
           };
@@ -104,14 +107,17 @@
               python312Packages = prev.python312Packages.overrideScope (
                 _: p: {
                   pgvector = p.pgvector.overridePythonAttrs (_: {
+                    # fails?
                     doCheck = false;
                   });
                 }
               );
+              # use open-webui from latest nixpkgs non-flox
               open-webui =
                 (import nixpkgs {
                   inherit system;
                   config = pkgsConfig // {
+                    # torch broken on darwin?
                     allowBroken = prev.stdenv.isDarwin;
                     allowUnsupportedSystem = prev.stdenv.isDarwin;
                   };
@@ -138,7 +144,7 @@
             };
             tensorrt = {
               label = "TensorRT-LLM";
-              modelDefault = "ibm-granite/granite-4.0-h-micro";
+              modelDefault = "2imi9/gpt-oss-20b-NVFP4";
               extras = [ "tensorrt" ];
             };
             mlx = {
@@ -208,6 +214,8 @@
               final: prev:
               lib.optionalAttrs pkgs.stdenv.isLinux (
                 let
+                  # https://pyproject-nix.github.io/uv2nix/FAQ.html#my-package-foo-doesnt-build
+                  # not as clean as it could be, global, but it works...
                   cudaLibs =
                     (with pkgs.cudaPackages_12; [
                       cudatoolkit
@@ -238,29 +246,15 @@
                     pkgs.libfabric
                   ];
 
-                  torchPkg =
-                    let
-                      candidate = prev."torch" or (lib.attrByPath [ "python312Packages" "torch" ] null pkgs);
-                    in
-                    assert
-                      lib.isDerivation candidate
-                      || builtins.trace "torchPkg: expected derivation, got ${builtins.typeOf candidate}" false;
-                    candidate;
-                  torchLibPaths = [
-                    "${torchPkg}/${pkgs.python312.sitePackages}/torch/lib"
-                    "${torchPkg}/${pkgs.python312.sitePackages}/torch.libs"
-                    "${torchPkg}/${pkgs.python312.sitePackages}/torch/.libs"
-                  ];
+                  torchLibPath = "${final.torch}/${final.python.sitePackages}/torch/lib";
+
                   cudaPatch =
                     name: pkg:
                     assert lib.isDerivation pkg || builtins.trace "cudaPatch: ${name} is ${builtins.typeOf pkg}" false;
                     pkg.overrideAttrs (old: {
-                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ cudaLibs;
                       buildInputs = (old.buildInputs or [ ]) ++ cudaLibs;
-                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
-                      preFixup = (old.preFixup or "") + ''
-                        addAutoPatchelfSearchPath ${lib.makeLibraryPath cudaLibs}
-                      '';
+                      # nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ cudaLibs;
+                      # propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
                       autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
                         "libcuda.so.1"
                         "libnvidia-ml.so.1"
@@ -271,36 +265,59 @@
                     name: pkg:
                     assert lib.isDerivation pkg || builtins.trace "hpcPatch: ${name} is ${builtins.typeOf pkg}" false;
                     pkg.overrideAttrs (old: {
-                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ hpcLibs;
                       buildInputs = (old.buildInputs or [ ]) ++ hpcLibs;
-                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ hpcLibs;
+                      # nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ hpcLibs;
+                      # propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ hpcLibs;
                     });
 
-                  torchPatch =
-                    name: pkg:
-                    assert lib.isDerivation pkg || builtins.trace "torchPatch: ${name} is ${builtins.typeOf pkg}" false;
-                    pkg.overrideAttrs (old: {
-                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ torchLibPaths;
-                      preFixup = (old.preFixup or "") + ''
-                        addAutoPatchelfSearchPath ${lib.makeLibraryPath torchLibPaths}
-                      '';
-                    });
-
+                  appendPostFixup =
+                    extra: old:
+                    lib.concatStringsSep "\n" (
+                      lib.filter (x: x != "") [
+                        (old.postFixup or "")
+                        extra
+                      ]
+                    );
                 in
                 {
                   "cupy-cuda12x" = cudaPatch "cupy-cuda12x" prev."cupy-cuda12x";
                   "nvidia-cusparse-cu12" = cudaPatch "nvidia-cusparse-cu12" prev."nvidia-cusparse-cu12";
-                  "nvidia-cusolver-cu12" = cudaPatch "nvidia-cusolver-cu12" prev."nvidia-cusolver-cu12";
                   "nvidia-cutlass-dsl" = cudaPatch "nvidia-cutlass-dsl" prev."nvidia-cutlass-dsl";
                   "triton" = cudaPatch "triton" prev."triton";
-                  "torch" = cudaPatch "torch" torchPkg;
-                  "vllm" = cudaPatch "vllm" prev."vllm";
 
                   "nvidia-nvshmem-cu12" = hpcPatch "nvidia-nvshmem-cu12" prev."nvidia-nvshmem-cu12";
                   "nvidia-cufile-cu12" = hpcPatch "nvidia-cufile-cu12" prev."nvidia-cufile-cu12";
 
-                  "torchvision" = torchPatch "torchvision" (cudaPatch "torchvision" prev."torchvision");
-                  "torchaudio" = torchPatch "torchaudio" (cudaPatch "torchaudio" prev."torchaudio");
+                  "torch" = cudaPatch "torch" (
+                    prev.torch.overrideAttrs (old: {
+                      cudaSupport = true;
+                    })
+                  );
+
+                  # cudaPatch expects list &
+                  "vllm" = prev.vllm.overrideAttrs (old: {
+                    buildInputs = old.buildInputs ++ cudaLibs;
+                    autoPatchelfIgnoreMissingDeps = true;
+                    postFixup = appendPostFixup ''addAutoPatchelfSearchPath "${torchLibPath}"'' old;
+                  });
+
+                  # I never got the patch working but it works w/o
+                  "torchaudio" =
+                    let
+                      base = prev.torchaudio.overrideAttrs (old: {
+                        dontAutoPatchelf = true;
+                        postFixup = appendPostFixup ''addAutoPatchelfSearchPath "${torchLibPath}"'' old;
+                      });
+                    in
+                    cudaPatch "torchaudio" base;
+
+                  "torchvision" =
+                    let
+                      base = prev.torchvision.overrideAttrs (old: {
+                        postFixup = appendPostFixup ''addAutoPatchelfSearchPath "${torchLibPath}"'' old;
+                      });
+                    in
+                    cudaPatch "torchvision" base;
 
                   "numba" = prev."numba".overrideAttrs (old: {
                     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
