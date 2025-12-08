@@ -5,9 +5,6 @@
     extra-substituters = [
       "https://cache.flox.dev"
     ];
-    extra-trusted-substituters = [
-      "https://cache.flox.dev"
-    ];
     extra-trusted-public-keys = [
       "flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs="
     ];
@@ -282,6 +279,7 @@
                 {
                   "cupy-cuda12x" = cudaPatch "cupy-cuda12x" prev."cupy-cuda12x";
                   "nvidia-cusparse-cu12" = cudaPatch "nvidia-cusparse-cu12" prev."nvidia-cusparse-cu12";
+                  "nvidia-cusolver-cu12" = cudaPatch "nvidia-cusolver-cu12" prev."nvidia-cusolver-cu12";
                   "nvidia-cutlass-dsl" = cudaPatch "nvidia-cutlass-dsl" prev."nvidia-cutlass-dsl";
                   "triton" = cudaPatch "triton" prev."triton";
 
