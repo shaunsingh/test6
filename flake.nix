@@ -347,7 +347,20 @@
                   "tensorrt-llm" = addSetupTools "tensorrt-llm" prev."tensorrt-llm";
                   "etcd3" = addSetupTools "etcd3" prev."etcd3";
                   "flashinfer-python" = addSetupTools "flashinfer-python" prev."flashinfer-python";
-                  "tensorrt-cu13" = addSetupTools "tensorrt-cu13" (cudaPatch "tensorrt-cu13" prev."tensorrt-cu13");
+                  "tensorrt-cu13" = addSetupTools "tensorrt-cu13" prev."tensorrt-cu13";
+                  "tensorrt-cu13-bindings" =
+                    addSetupTools "tensorrt-cu13-bindings" (
+                      prev."tensorrt-cu13-bindings".overrideAttrs (old: {
+                        buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt-cu13-libs" ];
+                        autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
+                          "libcuda.so.1"
+                          "libnvidia-ml.so.1"
+                        ];
+                        autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [
+                          "${final."tensorrt-cu13-libs"}/${final.python.sitePackages}/tensorrt_libs"
+                        ];
+                      })
+                    );
 
                   # I never got the patch working but it works w/o
                   "torchaudio" =
