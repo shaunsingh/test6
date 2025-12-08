@@ -32,6 +32,13 @@ conflicts = [
       { extra = "tensorrt" }
     ],
 ]
+index-strategy = "unsafe-best-match"
+prerelease = "allow"
+
+[[tool.uv.index]]
+name = "tensorrt-llm"
+url = "https://pypi.nvidia.com"
+explicit = true
 
 [project.scripts]
 mcp-server = "protocol_layer.server:main"
@@ -53,6 +60,7 @@ allow-direct-references = true
 
 [tool.uv.extra-build-dependencies]
 "cassandra_driver-3.29.3" = ["setuptools"]
+"flashinfer_python-0.3.1.post1" = ["setuptools"]
 
 [dependency-groups]
 test = ["pytest>=9.0.1"]
