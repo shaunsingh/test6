@@ -269,6 +269,13 @@
                       # propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ hpcLibs;
                     });
 
+                  addSetupTools =
+                    name: pkg:
+                    assert lib.isDerivation pkg || builtins.trace "addSetupTools: ${name} is ${builtins.typeOf pkg}" false;
+                    pkg.overrideAttrs (old: {
+                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
+                    });
+
                   appendPostFixup =
                     extra: old:
                     lib.concatStringsSep "\n" (
@@ -336,22 +343,11 @@
                   #   );
                   # });
 
-
-                  "tensorrt" = prev."tensorrt".overrideAttrs (old: {
-                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
-                  });
-
-                  # "tensorrt-llm" = prev."tensorrt-llm".overrideAttrs (old: {
-                  #   nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
-                  # });
-
-                  "etcd3" = prev."etcd3".overrideAttrs (old: {
-                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
-                  });
-
-                  "flashinfer-python" = prev."flashinfer-python".overrideAttrs (old: {
-                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
-                  });
+                  "tensorrt" = addSetupTools "tensorrt" prev."tensorrt";
+                  "tensorrt-llm" = addSetupTools "tensorrt-llm" prev."tensorrt-llm";
+                  "tensorrt-cu13" = addSetupTools "tensorrt-cu13" prev."tensorrt-cu13";
+                  "etcd3" = addSetupTools "etcd3" prev."etcd3";
+                  "flashinfer-python" = addSetupTools "flashinfer-python" prev."flashinfer-python";
 
                   # I never got the patch working but it works w/o
                   "torchaudio" =
