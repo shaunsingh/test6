@@ -270,8 +270,7 @@
                     });
 
                   addSetupTools =
-                    name: pkg:
-                    assert lib.isDerivation pkg || builtins.trace "addSetupTools: ${name} is ${builtins.typeOf pkg}" false;
+                    pkg:
                     pkg.overrideAttrs (old: {
                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
                     });
@@ -345,9 +344,10 @@
 
                   "tensorrt" = addSetupTools "tensorrt" prev."tensorrt";
                   "tensorrt-llm" = addSetupTools "tensorrt-llm" prev."tensorrt-llm";
-                  "tensorrt-cu13" = addSetupTools "tensorrt-cu13" prev."tensorrt-cu13";
                   "etcd3" = addSetupTools "etcd3" prev."etcd3";
                   "flashinfer-python" = addSetupTools "flashinfer-python" prev."flashinfer-python";
+
+                  "tensorrt-cu13" = addSetupTools (cudapatch "tensorrt-cu13" prev."tensorrt-cu13");
 
                   # I never got the patch working but it works w/o
                   "torchaudio" =
