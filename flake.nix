@@ -203,120 +203,113 @@
             })
             (
               final: prev:
-              let
-                cudaLibs = (with pkgs.cudaPackages_12; [
-                  cudatoolkit
-                  cuda_cudart
-                  cuda_cupti
-                  cuda_nvrtc
-                  libcufft
-                  libcurand
-                  libcusparse
-                  libcusparse_lt
-                  libcublas
-                  libcusolver
-                  libcutensor
-                  libnvjitlink
-                  libcufile
-                  libnvshmem
-                  nccl
-                  cudnn
-                ]) ++ (with legacyPkgs.cudaPackages_12; [ 
-                  cudnn 
-                ]);
-                hpcLibs = [
-                  pkgs.rdma-core
-                  pkgs.openmpi
-                  pkgs.ucx
-                  pkgs.pmix
-                  pkgs.libfabric
-                ];
+              lib.optionalAttrs pkgs.stdenv.isLinux (
+                let
+                  cudaLibs = (with pkgs.cudaPackages_12; [
+                    cudatoolkit
+                    cuda_cudart
+                    cuda_cupti
+                    cuda_nvrtc
+                    libcufft
+                    libcurand
+                    libcusparse
+                    libcusparse_lt
+                    libcublas
+                    libcusolver
+                    libcutensor
+                    libnvjitlink
+                    libcufile
+                    libnvshmem
+                    nccl
+                    cudnn
+                  ]) ++ (with legacyPkgs.cudaPackages_12; [
+                    cudnn
+                  ]);
+                  hpcLibs = [
+                    pkgs.rdma-core
+                    pkgs.openmpi
+                    pkgs.ucx
+                    pkgs.pmix
+                    pkgs.libfabric
+                  ];
 
-                cudaLibPaths = lib.concatMap (x: [
-                  "${x}/lib"
-                  "${x}/lib64"
-                  "${x}/targets/x86_64-linux/lib"
-                  "${x}/targets/aarch64-linux/lib"
-                ]) cudaLibs;
-                hpcLibPaths = (map (x: "${x}/lib") hpcLibs) ++ (map (x: "${x}/lib64") hpcLibs);
-                pythonSitePackages = pkgs.python312.sitePackages;
-                torchLibPaths = [
-                  "${final."torch"}/lib"
-                  "${final."torch"}/lib64"
-                  "${final."torch"}/${pythonSitePackages}"
-                  "${final."torch"}/${pythonSitePackages}/torch"
-                  "${final."torch"}/${pythonSitePackages}/torch/lib"
-                  "${final."torch"}/${pythonSitePackages}/torch.libs"
-                ];
+                  torchPkg =
+                    let
+                      candidate = prev."torch" or (lib.attrByPath [ "python312Packages" "torch" ] null pkgs);
+                    in
+                    assert lib.isDerivation candidate
+                      || builtins.trace "torchPkg: expected derivation, got ${builtins.typeOf candidate}" false;
+                    candidate;
+                  torchLibPaths = [
+                    "${torchPkg}/${pkgs.python312.sitePackages}/torch/lib"
+                    "${torchPkg}/${pkgs.python312.sitePackages}/torch.libs"
+                    "${torchPkg}/${pkgs.python312.sitePackages}/torch/.libs"
+                  ];
 
-                extendInputs =
-                  additions: old:
-                  old
-                  // lib.mapAttrs (name: extra: (old.${name} or [ ]) ++ extra) additions;
-                patchCuda =
-                  pkg:
-                  pkg.overrideAttrs (old: {
-                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ cudaLibPaths;
-                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [ "libcuda.so.1" ];
-                    }
-                    // extendInputs {
-                      nativeBuildInputs = [ pkgs.autoPatchelfHook ] ++ cudaLibs;
-                      buildInputs = cudaLibs;
-                      propagatedBuildInputs = cudaLibs;
-                    } old
-                  );
-                patchHpc =
-                  pkg:
-                  pkg.overrideAttrs (old: {
-                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ hpcLibPaths;
-                    }
-                    // extendInputs {
-                      nativeBuildInputs = [ pkgs.autoPatchelfHook ];
-                      buildInputs = hpcLibs;
-                      propagatedBuildInputs = hpcLibs;
-                    } old
-                  );
-                patchTorchLibs =
-                  pkg:
-                  pkg.overrideAttrs (old: {
+                  cudaPatch =
+                    name: pkg:
+                    assert lib.isDerivation pkg
+                      || builtins.trace "cudaPatch: ${name} is ${builtins.typeOf pkg}" false;
+                    pkg.overrideAttrs (old: {
+                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ cudaLibs;
+                      buildInputs = (old.buildInputs or [ ]) ++ cudaLibs;
+                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
+                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [ "libcuda.so.1" "libnvidia-ml.so.1" ];
+                    });
+
+                  hpcPatch =
+                    name: pkg:
+                    assert lib.isDerivation pkg
+                      || builtins.trace "hpcPatch: ${name} is ${builtins.typeOf pkg}" false;
+                    pkg.overrideAttrs (old: {
+                      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ hpcLibs;
+                      buildInputs = (old.buildInputs or [ ]) ++ hpcLibs;
+                      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ hpcLibs;
+                    });
+
+                  torchPatch =
+                    name: pkg:
+                    assert lib.isDerivation pkg
+                      || builtins.trace "torchPatch: ${name} is ${builtins.typeOf pkg}" false;
+                    pkg.overrideAttrs (old: {
                       autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ torchLibPaths;
-                    }
-                    // extendInputs {
-                      nativeBuildInputs = [ pkgs.autoPatchelfHook ];
-                      buildInputs = [ final."torch" ];
-                      propagatedBuildInputs = [ final."torch" ];
-                    } old
-                  );
+                      preFixup =
+                        (old.preFixup or "")
+                        + ''
+                          addAutoPatchelfSearchPath ${lib.makeLibraryPath torchLibPaths}
+                        '';
+                    });
 
-              in
-              lib.optionalAttrs pkgs.stdenv.isLinux {
-                "cupy-cuda12x" = patchCuda prev."cupy-cuda12x";
-                "nvidia-cusparse-cu12" = patchCuda prev."nvidia-cusparse-cu12";
-                "nvidia-cusolver-cu12" = patchCuda prev."nvidia-cusolver-cu12";
-                "nvidia-cutlass-dsl" = patchCuda prev."nvidia-cutlass-dsl";
-                "torch" = patchCuda prev."torch";
-                "triton" = patchCuda prev."triton";
-                "vllm" = patchCuda prev."vllm";
+                in
+                {
+                  "cupy-cuda12x" = cudaPatch "cupy-cuda12x" prev."cupy-cuda12x";
+                  "nvidia-cusparse-cu12" = cudaPatch "nvidia-cusparse-cu12" prev."nvidia-cusparse-cu12";
+                  "nvidia-cusolver-cu12" = cudaPatch "nvidia-cusolver-cu12" prev."nvidia-cusolver-cu12";
+                  "nvidia-cutlass-dsl" = cudaPatch "nvidia-cutlass-dsl" prev."nvidia-cutlass-dsl";
+                  "triton" = cudaPatch "triton" prev."triton";
+                  "torch" = cudaPatch "torch" torchPkg;
+                  "vllm" = cudaPatch "vllm" prev."vllm";
 
-                "nvidia-nvshmem-cu12" = patchHpc prev."nvidia-nvshmem-cu12";
-                "nvidia-cufile-cu12" = patchHpc prev."nvidia-cufile-cu12";
+                  "nvidia-nvshmem-cu12" = hpcPatch "nvidia-nvshmem-cu12" prev."nvidia-nvshmem-cu12";
+                  "nvidia-cufile-cu12" = hpcPatch "nvidia-cufile-cu12" prev."nvidia-cufile-cu12";
 
-                "torchvision" = patchTorchLibs (patchCuda prev."torchvision");
-                "torchaudio" = patchTorchLibs (patchCuda prev."torchaudio");
+                  "torchvision" = torchPatch "torchvision" (cudaPatch "torchvision" prev."torchvision");
+                  "torchaudio" = torchPatch "torchaudio" (cudaPatch "torchaudio" prev."torchaudio");
 
-                "numba" = prev."numba".overrideAttrs (old: {
-                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ];
+                  "numba" = prev."numba".overrideAttrs (old: {
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook pkgs.tbb ];
                     buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.tbb ];
                     propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pkgs.tbb ];
                     autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [ "${pkgs.tbb}/lib" ];
                   });
 
-                "etcd3" = prev."etcd3".overrideAttrs (old: {
-                  nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
-                  buildInputs = (old.buildInputs or [ ]) ++ [ final."setuptools" ];
-                });
+                  "etcd3" = prev."etcd3".overrideAttrs (old: {
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
+                    buildInputs = (old.buildInputs or [ ]) ++ [ final."setuptools" ];
+                  });
 
-              }
+                }
+              )
               // {
                 "terrabridge-mcp" = prev."terrabridge-mcp".overrideAttrs (old: {
                   passthru = (old.passthru or { }) // {
