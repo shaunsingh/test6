@@ -336,9 +336,14 @@
                   #   );
                   # });
 
-                  "tensorrt-llm" = prev."tensorrt-llm".overrideAttrs (old: {
+
+                  "tensorrt" = prev."tensorrt".overrideAttrs (old: {
                     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
                   });
+
+                  # "tensorrt-llm" = prev."tensorrt-llm".overrideAttrs (old: {
+                  #   nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
+                  # });
 
                   "etcd3" = prev."etcd3".overrideAttrs (old: {
                     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
