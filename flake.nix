@@ -174,7 +174,12 @@
           runtimeCfgByBackend = lib.mapAttrs (_: cfg: runtimeBackends.${cfg.runtime}) backendDefs;
 
           mkBackend =
-            name: { runtime, supports ? true, ... }@cfg:
+            name:
+            {
+              runtime,
+              supports ? true,
+              ...
+            }@cfg:
             let
               runtimeCfg = runtimeCfgByBackend.${name};
             in
@@ -189,11 +194,9 @@
           enabledBackends = lib.filterAttrs (_: backend: backend.supports) backends;
 
           deps = lib.mapAttrs (_: backend: withExtra backend.extras) enabledBackends;
-          defaultDeps =
-            lib.attrByPath
-              [ baseRuntime ]
-              (throw "Default backend ${baseRuntime} not enabled for ${system}.")
-              deps;
+          defaultDeps = lib.attrByPath [
+            baseRuntime
+          ] (throw "Default backend ${baseRuntime} not enabled for ${system}.") deps;
 
           pythonOverlays = [
             inputs.pyproject-build-systems.overlays.default
@@ -205,26 +208,28 @@
               final: prev:
               lib.optionalAttrs pkgs.stdenv.isLinux (
                 let
-                  cudaLibs = (with pkgs.cudaPackages_12; [
-                    cudatoolkit
-                    cuda_cudart
-                    cuda_cupti
-                    cuda_nvrtc
-                    libcufft
-                    libcurand
-                    libcusparse
-                    libcusparse_lt
-                    libcublas
-                    libcusolver
-                    libcutensor
-                    libnvjitlink
-                    libcufile
-                    libnvshmem
-                    nccl
-                    cudnn
-                  ]) ++ (with legacyPkgs.cudaPackages_12; [
-                    cudnn
-                  ]);
+                  cudaLibs =
+                    (with pkgs.cudaPackages_12; [
+                      cudatoolkit
+                      cuda_cudart
+                      cuda_cupti
+                      cuda_nvrtc
+                      libcufft
+                      libcurand
+                      libcusparse
+                      libcusparse_lt
+                      libcublas
+                      libcusolver
+                      libcutensor
+                      libnvjitlink
+                      libcufile
+                      libnvshmem
+                      nccl
+                      cudnn
+                    ])
+                    ++ (with legacyPkgs.cudaPackages_12; [
+                      cudnn
+                    ]);
                   hpcLibs = [
                     pkgs.rdma-core
                     pkgs.openmpi
@@ -237,7 +242,8 @@
                     let
                       candidate = prev."torch" or (lib.attrByPath [ "python312Packages" "torch" ] null pkgs);
                     in
-                    assert lib.isDerivation candidate
+                    assert
+                      lib.isDerivation candidate
                       || builtins.trace "torchPkg: expected derivation, got ${builtins.typeOf candidate}" false;
                     candidate;
                   torchLibPaths = [
@@ -245,22 +251,25 @@
                     "${torchPkg}/${pkgs.python312.sitePackages}/torch.libs"
                     "${torchPkg}/${pkgs.python312.sitePackages}/torch/.libs"
                   ];
-
                   cudaPatch =
                     name: pkg:
-                    assert lib.isDerivation pkg
-                      || builtins.trace "cudaPatch: ${name} is ${builtins.typeOf pkg}" false;
+                    assert lib.isDerivation pkg || builtins.trace "cudaPatch: ${name} is ${builtins.typeOf pkg}" false;
                     pkg.overrideAttrs (old: {
                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ cudaLibs;
                       buildInputs = (old.buildInputs or [ ]) ++ cudaLibs;
                       propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ cudaLibs;
-                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [ "libcuda.so.1" "libnvidia-ml.so.1" ];
+                      preFixup = (old.preFixup or "") + ''
+                        addAutoPatchelfSearchPath ${lib.makeLibraryPath cudaLibs}
+                      '';
+                      autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
+                        "libcuda.so.1"
+                        "libnvidia-ml.so.1"
+                      ];
                     });
 
                   hpcPatch =
                     name: pkg:
-                    assert lib.isDerivation pkg
-                      || builtins.trace "hpcPatch: ${name} is ${builtins.typeOf pkg}" false;
+                    assert lib.isDerivation pkg || builtins.trace "hpcPatch: ${name} is ${builtins.typeOf pkg}" false;
                     pkg.overrideAttrs (old: {
                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ] ++ hpcLibs;
                       buildInputs = (old.buildInputs or [ ]) ++ hpcLibs;
@@ -269,15 +278,12 @@
 
                   torchPatch =
                     name: pkg:
-                    assert lib.isDerivation pkg
-                      || builtins.trace "torchPatch: ${name} is ${builtins.typeOf pkg}" false;
+                    assert lib.isDerivation pkg || builtins.trace "torchPatch: ${name} is ${builtins.typeOf pkg}" false;
                     pkg.overrideAttrs (old: {
                       autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ torchLibPaths;
-                      preFixup =
-                        (old.preFixup or "")
-                        + ''
-                          addAutoPatchelfSearchPath ${lib.makeLibraryPath torchLibPaths}
-                        '';
+                      preFixup = (old.preFixup or "") + ''
+                        addAutoPatchelfSearchPath ${lib.makeLibraryPath torchLibPaths}
+                      '';
                     });
 
                 in
@@ -297,7 +303,10 @@
                   "torchaudio" = torchPatch "torchaudio" (cudaPatch "torchaudio" prev."torchaudio");
 
                   "numba" = prev."numba".overrideAttrs (old: {
-                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook pkgs.tbb ];
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+                      pkgs.autoPatchelfHook
+                      pkgs.tbb
+                    ];
                     buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.tbb ];
                     propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pkgs.tbb ];
                     autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [ "${pkgs.tbb}/lib" ];
@@ -351,17 +360,13 @@
 
           renderDefaults =
             attrs:
-            lib.concatStringsSep "\n" (
-              lib.mapAttrsToList (name: value: '': "''${${name}:=${value}}"'') attrs
-            );
+            lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: '': "''${${name}:=${value}}"'') attrs);
 
           backendEnvs = lib.mapAttrs (name: _: mkEnv "mcp-env-${name}" deps.${name}) enabledBackends;
 
-          defaultBackend =
-            lib.attrByPath
-              [ baseRuntime ]
-              (throw "Default backend ${baseRuntime} not enabled for ${system}.")
-              enabledBackends;
+          defaultBackend = lib.attrByPath [
+            baseRuntime
+          ] (throw "Default backend ${baseRuntime} not enabled for ${system}.") enabledBackends;
 
           mkLauncher =
             {
@@ -543,43 +548,39 @@
             lib.listToAttrs (
               map (variant: {
                 name = mkVariantName attrPrefix variant.key;
-                value =
-                  mkApp {
-                    label = "${labelPrefix}${variant.labelSuffix}";
-                    backend = backend.name;
-                    webui = variant.webui;
-                    entry = variant.entry;
-                  };
+                value = mkApp {
+                  label = "${labelPrefix}${variant.labelSuffix}";
+                  backend = backend.name;
+                  webui = variant.webui;
+                  entry = variant.entry;
+                };
               }) appVariants
             );
 
           prefixedBackends = lib.filter (backend: backend.attrPrefix != "") (lib.attrValues enabledBackends);
 
-          allApps =
-            lib.foldl' lib.recursiveUpdate { }
-              (
-                [
-                  (mkAppsForBackend {
-                    backend = defaultBackend;
-                    attrPrefix = "";
-                    labelPrefix = defaultBackend.labelPrefix;
-                  })
-                ]
-                ++ map
-                  (backend:
-                    mkAppsForBackend {
-                      inherit backend;
-                      attrPrefix = backend.attrPrefix;
-                      labelPrefix = backend.labelPrefix;
-                    })
-                  prefixedBackends
-              );
+          allApps = lib.foldl' lib.recursiveUpdate { } (
+            [
+              (mkAppsForBackend {
+                backend = defaultBackend;
+                attrPrefix = "";
+                labelPrefix = defaultBackend.labelPrefix;
+              })
+            ]
+            ++ map (
+              backend:
+              mkAppsForBackend {
+                inherit backend;
+                attrPrefix = backend.attrPrefix;
+                labelPrefix = backend.labelPrefix;
+              }
+            ) prefixedBackends
+          );
         in
         {
-          packages =
-            backendEnvs // {
-              default = backendEnvs.${defaultBackend.name};
-            };
+          packages = backendEnvs // {
+            default = backendEnvs.${defaultBackend.name};
+          };
 
           devShells.default = pkgs.mkShell {
             packages = [
