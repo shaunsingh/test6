@@ -224,12 +224,6 @@
                 ]) ++ (with legacyPkgs.cudaPackages_12; [ 
                   cudnn 
                 ]);
-                cudaLibPaths = lib.concatMap (x: [
-                  "${x}/lib"
-                  "${x}/lib64"
-                  "${x}/targets/x86_64-linux/lib"
-                  "${x}/targets/aarch64-linux/lib"
-                ]) cudaLibs;
                 hpcLibs = [
                   pkgs.rdma-core
                   pkgs.openmpi
@@ -237,7 +231,24 @@
                   pkgs.pmix
                   pkgs.libfabric
                 ];
+
+                cudaLibPaths = lib.concatMap (x: [
+                  "${x}/lib"
+                  "${x}/lib64"
+                  "${x}/targets/x86_64-linux/lib"
+                  "${x}/targets/aarch64-linux/lib"
+                ]) cudaLibs;
                 hpcLibPaths = (map (x: "${x}/lib") hpcLibs) ++ (map (x: "${x}/lib64") hpcLibs);
+                pythonSitePackages = pkgs.python312.sitePackages;
+                torchLibPaths = [
+                  "${final."torch"}/lib"
+                  "${final."torch"}/lib64"
+                  "${final."torch"}/${pythonSitePackages}"
+                  "${final."torch"}/${pythonSitePackages}/torch"
+                  "${final."torch"}/${pythonSitePackages}/torch/lib"
+                  "${final."torch"}/${pythonSitePackages}/torch.libs"
+                ];
+
                 extendInputs =
                   additions: old:
                   old
@@ -265,52 +276,33 @@
                       propagatedBuildInputs = hpcLibs;
                     } old
                   );
-                torchLibPaths =
-                  let
-                    torch = final."torch";
-                    torchLib = lib.getLib torch;
-                    pythonLibDirs = [ "${pkgs.python312.libPrefix}/site-packages" ]
-                  in
-                  lib.unique (
-                    [
-                      "${torch}/lib"
-                      "${torchLib}/lib"
-                      "${torch}/lib64"
-                      "${torchLib}/lib64"
-                    ]
-                    ++ lib.concatMap (dir: [
-                      "${torch}/${dir}/torch/lib"
-                      "${torchLib}/${dir}/torch/lib"
-                    ]) pythonLibDirs
-                  );
-                patchTorchDeps =
+                patchTorchLibs =
                   pkg:
                   pkg.overrideAttrs (old: {
-                      autoPatchelfExtraLibs = lib.unique ((old.autoPatchelfExtraLibs or [ ]) ++ torchLibPaths);
-                      autoPatchelfLibs = lib.unique ((old.autoPatchelfLibs or [ ]) ++ torchLibPaths);
-                      autoPatchelfExtraRPaths = lib.unique ((old.autoPatchelfExtraRPaths or [ ]) ++ torchLibPaths);
+                      autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ torchLibPaths;
                     }
                     // extendInputs {
-                      nativeBuildInputs = [ final."torch" ];
+                      nativeBuildInputs = [ pkgs.autoPatchelfHook ];
                       buildInputs = [ final."torch" ];
                       propagatedBuildInputs = [ final."torch" ];
                     } old
                   );
+
               in
               lib.optionalAttrs pkgs.stdenv.isLinux {
                 "cupy-cuda12x" = patchCuda prev."cupy-cuda12x";
                 "nvidia-cusparse-cu12" = patchCuda prev."nvidia-cusparse-cu12";
                 "nvidia-cusolver-cu12" = patchCuda prev."nvidia-cusolver-cu12";
                 "nvidia-cutlass-dsl" = patchCuda prev."nvidia-cutlass-dsl";
-                "torch" = patchTorchDeps (patchCuda prev."torch");
+                "torch" = patchCuda prev."torch";
                 "triton" = patchCuda prev."triton";
+                "vllm" = patchCuda prev."vllm";
 
                 "nvidia-nvshmem-cu12" = patchHpc prev."nvidia-nvshmem-cu12";
                 "nvidia-cufile-cu12" = patchHpc prev."nvidia-cufile-cu12";
 
-                "vllm" = patchTorchDeps (patchCuda prev."vllm");
-                "torchvision" = patchTorchDeps (patchCuda prev."torchvision");
-                "torchaudio" = patchTorchDeps (patchCuda prev."torchaudio");
+                "torchvision" = patchTorchLibs (patchCuda prev."torchvision");
+                "torchaudio" = patchTorchLibs (patchCuda prev."torchaudio");
 
                 "numba" = prev."numba".overrideAttrs (old: {
                     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.autoPatchelfHook ];
