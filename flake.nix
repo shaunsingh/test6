@@ -63,6 +63,7 @@
           workspaceRoot = inputs.gitignore.lib.gitignoreSource ./.;
           workspace = uv2nix.lib.workspace.loadWorkspace { inherit workspaceRoot; };
           baseDeps = workspace.deps.default;
+          optionalDeps = workspace.deps.optionals;
 
           withExtra =
             extras:
@@ -201,11 +202,11 @@
             baseRuntime
           ] (throw "Default backend ${baseRuntime} not enabled for ${system}.") deps;
 
-          pythonOverlays = [
+          pythonOverlays = depSpec: [
             inputs.pyproject-build-systems.overlays.default
             (workspace.mkPyprojectOverlay {
               sourcePreference = "wheel";
-              dependencies = defaultDeps;
+              dependencies = depSpec;
             })
             (
               final: prev:
@@ -238,6 +239,7 @@
                   hpcLibs = [
                     pkgs.rdma-core
                     pkgs.openmpi
+                    pkgs.mpich
                     pkgs.ucx
                     pkgs.pmix
                     pkgs.libfabric
@@ -285,6 +287,27 @@
 
                   "nvidia-nvshmem-cu12" = hpcPatch "nvidia-nvshmem-cu12" prev."nvidia-nvshmem-cu12";
                   "nvidia-cufile-cu12" = hpcPatch "nvidia-cufile-cu12" prev."nvidia-cufile-cu12";
+                  "mpi4py" = hpcPatch "mpi4py" prev."mpi4py";
+
+                  "wheel-stub" = pkgs.python312Packages.buildPythonPackage rec {
+                    pname = "wheel-stub";
+                    version = "0.4.2";
+                    format = "pyproject";
+                    src = pkgs.fetchFromGitHub {
+                      owner = "wheelnext";
+                      repo = "wheel-stub";
+                      rev = "v${version}";
+                      hash = "sha256-VmHyaEjXaPNvGFbsn3nd3fqQREW0f4Aj3S6H4iytzN4=";
+                    };
+                    nativeBuildInputs = [ pkgs.python312Packages.hatchling ];
+                    doCheck = false;
+                    pythonImportsCheck = [ "wheel_stub" ];
+                    meta = {
+                      description = "PEP 517 build backend that redirects wheel installs to external indexes";
+                      homepage = "https://github.com/wheelnext/wheel-stub";
+                      license = lib.licenses.asl20;
+                    };
+                  };
 
                   "torch" = cudaPatch "torch" (
                     prev.torch.overrideAttrs (old: {
@@ -298,6 +321,20 @@
                     autoPatchelfIgnoreMissingDeps = true;
                     postFixup = appendPostFixup ''addAutoPatchelfSearchPath "${torchLibPath}"'' old;
                   });
+
+                  #                     "tensorrt-llm" = prev."tensorrt-llm".overrideAttrs (old: {
+                  #                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ wheelStub ];
+                  #                       propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ wheelStub ];
+                  #                       pythonPath = (old.pythonPath or [ ]) ++ [ wheelStub ];
+                  #                       preBuild = lib.concatStringsSep "\n" (
+                  #                         lib.filter (x: x != "") [
+                  #                           (old.preBuild or "")
+                  #                           ''export PYTHONPATH="${wheelStub}/${final.python.sitePackages}:$PYTHONPATH"''
+                  #                           ''export PIP_EXTRA_INDEX_URL="https://pypi.nvidia.com/simple''${PIP_EXTRA_INDEX_URL:+:$PIP_EXTRA_INDEX_URL}"''
+                  #                           ''export WHEEL_STUB_EXTRA_INDEX_URL="https://pypi.nvidia.com/simple''${WHEEL_STUB_EXTRA_INDEX_URL:+:$WHEEL_STUB_EXTRA_INDEX_URL}"''
+                  #                         ]
+                  #                       );
+                  #                     });
 
                   # I never got the patch working but it works w/o
                   "torchaudio" =
@@ -329,7 +366,10 @@
 
                   "etcd3" = prev."etcd3".overrideAttrs (old: {
                     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
-                    buildInputs = (old.buildInputs or [ ]) ++ [ final."setuptools" ];
+                  });
+
+                  "flashinfer-python" = prev."flashinfer-python".overrideAttrs (old: {
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
                   });
 
                 }
@@ -346,10 +386,10 @@
                         ];
                         dontConfigure = true;
                         buildPhase = "
-                          runHook preBuild;
-                          SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt pytest -q;
-                          runHook postBuild
-                        ";
+                            runHook preBuild;
+                            SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt pytest -q;
+                            runHook postBuild
+                          ";
                         installPhase = "mkdir -p $out";
                       };
                     };
@@ -360,9 +400,13 @@
           ];
 
           pyprojectPackages = pkgs.callPackage pyproject-nix.build.packages { python = pkgs.python312; };
-          pythonSet = pyprojectPackages.overrideScope (lib.composeManyExtensions pythonOverlays);
 
-          mkEnv = name: deps: pythonSet.mkVirtualEnv name deps;
+          mkPythonSet =
+            depSpec: pyprojectPackages.overrideScope (lib.composeManyExtensions (pythonOverlays depSpec));
+
+          mkEnv = name: depSpec: (mkPythonSet depSpec).mkVirtualEnv name depSpec;
+
+          backendEnvs = lib.mapAttrs (name: _: mkEnv "mcp-env-${name}" deps.${name}) enabledBackends;
 
           launcherCommonDefaults = {
             MCP_PORT = "8001";
@@ -376,8 +420,6 @@
           renderDefaults =
             attrs:
             lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: '': "''${${name}:=${value}}"'') attrs);
-
-          backendEnvs = lib.mapAttrs (name: _: mkEnv "mcp-env-${name}" deps.${name}) enabledBackends;
 
           defaultBackend = lib.attrByPath [
             baseRuntime
@@ -614,7 +656,7 @@
           apps = allApps;
 
           formatter = pkgs.nixfmt-rfc-style;
-          checks.pytest = pythonSet."terrabridge-mcp".passthru.tests.pytest;
+          checks.pytest = (mkPythonSet defaultDeps)."terrabridge-mcp".passthru.tests.pytest;
         };
     };
 }
