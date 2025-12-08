@@ -343,8 +343,9 @@
                   #   );
                   # });
 
+                  "tensorrt-llm" = addSetupTools "tensorrt-llm" (cudaPatch "tensorrt-llm" prev."tensorrt-llm");
+
                   "tensorrt" = addSetupTools "tensorrt" prev."tensorrt";
-                  "tensorrt-llm" = addSetupTools "tensorrt-llm" prev."tensorrt-llm";
                   "etcd3" = addSetupTools "etcd3" prev."etcd3";
                   "flashinfer-python" = addSetupTools "flashinfer-python" prev."flashinfer-python";
                   "tensorrt-cu13" = addSetupTools "tensorrt-cu13" prev."tensorrt-cu13";
