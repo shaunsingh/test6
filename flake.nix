@@ -322,19 +322,31 @@
                     postFixup = appendPostFixup ''addAutoPatchelfSearchPath "${torchLibPath}"'' old;
                   });
 
-                  #                     "tensorrt-llm" = prev."tensorrt-llm".overrideAttrs (old: {
-                  #                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ wheelStub ];
-                  #                       propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ wheelStub ];
-                  #                       pythonPath = (old.pythonPath or [ ]) ++ [ wheelStub ];
-                  #                       preBuild = lib.concatStringsSep "\n" (
-                  #                         lib.filter (x: x != "") [
-                  #                           (old.preBuild or "")
-                  #                           ''export PYTHONPATH="${wheelStub}/${final.python.sitePackages}:$PYTHONPATH"''
-                  #                           ''export PIP_EXTRA_INDEX_URL="https://pypi.nvidia.com/simple''${PIP_EXTRA_INDEX_URL:+:$PIP_EXTRA_INDEX_URL}"''
-                  #                           ''export WHEEL_STUB_EXTRA_INDEX_URL="https://pypi.nvidia.com/simple''${WHEEL_STUB_EXTRA_INDEX_URL:+:$WHEEL_STUB_EXTRA_INDEX_URL}"''
-                  #                         ]
-                  #                       );
-                  #                     });
+                  # "tensorrt-llm" = prev."tensorrt-llm".overrideAttrs (old: {
+                  #   nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ wheelStub ];
+                  #   propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ wheelStub ];
+                  #   pythonPath = (old.pythonPath or [ ]) ++ [ wheelStub ];
+                  #   preBuild = lib.concatStringsSep "\n" (
+                  #     lib.filter (x: x != "") [
+                  #       (old.preBuild or "")
+                  #       ''export PYTHONPATH="${wheelStub}/${final.python.sitePackages}:$PYTHONPATH"''
+                  #       ''export PIP_EXTRA_INDEX_URL="https://pypi.nvidia.com/simple''${PIP_EXTRA_INDEX_URL:+:$PIP_EXTRA_INDEX_URL}"''
+                  #       ''export WHEEL_STUB_EXTRA_INDEX_URL="https://pypi.nvidia.com/simple''${WHEEL_STUB_EXTRA_INDEX_URL:+:$WHEEL_STUB_EXTRA_INDEX_URL}"''
+                  #     ]
+                  #   );
+                  # });
+
+                  "tensorrt-llm" = prev."tensorrt-llm".overrideAttrs (old: {
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
+                  });
+
+                  "etcd3" = prev."etcd3".overrideAttrs (old: {
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
+                  });
+
+                  "flashinfer-python" = prev."flashinfer-python".overrideAttrs (old: {
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
+                  });
 
                   # I never got the patch working but it works w/o
                   "torchaudio" =
@@ -363,15 +375,6 @@
                     propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pkgs.tbb ];
                     autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [ "${pkgs.tbb}/lib" ];
                   });
-
-                  "etcd3" = prev."etcd3".overrideAttrs (old: {
-                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
-                  });
-
-                  "flashinfer-python" = prev."flashinfer-python".overrideAttrs (old: {
-                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
-                  });
-
                 }
               )
               // {
