@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import importlib.util
 import json
 import logging
 import os
@@ -18,6 +19,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from functools import cache
 from typing import Any, Callable, Coroutine
 
 log = logging.getLogger("terrabridge")
@@ -212,15 +214,19 @@ def compute_capability() -> float | None:
     return _detect_gpu().compute_capability
 
 
+@cache
+def trtllm_serve_path() -> str | None:
+    """Locate trtllm-serve, preferring the current venv bin."""
+    search_path = os.pathsep.join([venv_bin(), os.environ.get("PATH", "")])
+    return shutil.which("trtllm-serve", path=search_path)
+
+
+@cache
 def has_tensorrt() -> bool:
     try:
-        import importlib.util
-
-        if importlib.util.find_spec("tensorrt_llm") is None:
-            return False
+        return importlib.util.find_spec("tensorrt_llm") is not None and trtllm_serve_path() is not None
     except Exception:
         return False
-    return _find_trtllm_serve() is not None
 
 
 def has_vllm() -> bool:
@@ -378,18 +384,6 @@ def venv_bin() -> str:
     return os.path.dirname(sys.executable)
 
 
-def _find_trtllm_serve() -> str | None:
-    """Return path to trtllm-serve, checking PATH and the current venv."""
-    from_path = shutil.which("trtllm-serve")
-    if from_path:
-        return from_path
-
-    candidate = os.path.join(venv_bin(), "trtllm-serve")
-    if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
-        return candidate
-    return None
-
-
 def start_process(
     name: str, cmd: list[str], env: dict[str, str] | None = None
 ) -> Handle:
@@ -466,7 +460,7 @@ def start_tensorrt(host: str, port: int, model_id: str) -> Handle:
     cc = compute_capability()
     if not cc or cc < 8.0:
         raise RuntimeError("TensorRT requires CC >= 8.0")
-    trtllm_serve = _find_trtllm_serve()
+    trtllm_serve = trtllm_serve_path()
     if not trtllm_serve:
         raise RuntimeError("trtllm-serve not found")
     cmd = [
