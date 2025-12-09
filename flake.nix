@@ -134,6 +134,9 @@
           pkgs = mkPkgs nixpkgs;
           legacyPkgs = mkPkgs inputs."nixpkgs-24-05";
 
+          cudaPkgs = pkgs.cudaPackages_12;
+          cudaPkgsLegacy = legacyPkgs.cudaPackages;
+
           runtimeBackends = {
             vllm = {
               label = "vLLM";
@@ -215,7 +218,7 @@
                   # https://pyproject-nix.github.io/uv2nix/FAQ.html#my-package-foo-doesnt-build
                   # not as clean as it could be, global, but it works...
                   cudaLibs =
-                    (with pkgs.cudaPackages_12; [
+                    (with cudaPkgs; [
                       cudatoolkit
                       cuda_cudart
                       cuda_cupti
@@ -233,7 +236,7 @@
                       nccl
                       cudnn
                     ])
-                    ++ (with legacyPkgs.cudaPackages_12; [
+                    ++ (with cudaPkgsLegacy; [
                       cudnn
                     ]);
                   hpcLibs = [
@@ -328,12 +331,19 @@
                     postFixup = appendPostFixup ''addAutoPatchelfSearchPath "${torchLibPath}"'' old;
                   });
 
-
-                  "tensorrt-llm" = addSetupTools "tensorrt-llm" prev."tensorrt-llm";
-
                   # "tensorrt-llm" = addSetupTools "tensorrt-llm" (
                   #   prev.tensorrt-llm.overrideAttrs (old: {
                   #     buildInputs = old.buildInputs ++ cudaLibs;
+                  #     autoPatchelfIgnoreMissingDeps = true;
+                  #     postFixup = appendPostFixup ''
+                  #       addAutoPatchelfSearchPath "${final."tensorrt-cu13-libs"}/${final.python.sitePackages}/tensorrt_libs}"
+                  #     '' old;
+                  #   }));
+
+                  # "tensorrt-cu13" = addSetupTools "tensorrt-cu13" prev."tensorrt-cu13";
+                  # "tensorrt-cu13-bindings" = addSetupTools "tensorrt-cu13-bindings" (
+                  #   prev."tensorrt-cu13-bindings".overrideAttrs (old: {
+                  #     buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt-cu13-libs" ];
                   #     autoPatchelfIgnoreMissingDeps = true;
                   #     postFixup = appendPostFixup ''
                   #       addAutoPatchelfSearchPath "${final."tensorrt-cu13-libs"}/${final.python.sitePackages}/tensorrt_libs}"
@@ -353,16 +363,6 @@
                   #     ]
                   #   );
                   # });
-
-                  "tensorrt-cu12" = addSetupTools "tensorrt-cu12" prev."tensorrt-cu12";
-                  "tensorrt-cu12-bindings" = addSetupTools "tensorrt-cu12-bindings" (
-                    prev."tensorrt-cu12-bindings".overrideAttrs (old: {
-                      buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt-cu12-libs" ];
-                      autoPatchelfIgnoreMissingDeps = true;
-                      postFixup = appendPostFixup ''
-                        addAutoPatchelfSearchPath "${final."tensorrt-cu12-libs"}/${final.python.sitePackages}/tensorrt_libs}"
-                      '' old;
-                    }));
 
                   "tensorrt" = addSetupTools "tensorrt" prev."tensorrt";
                   "etcd3" = addSetupTools "etcd3" prev."etcd3";
