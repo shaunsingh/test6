@@ -340,10 +340,10 @@
                   "tensorrt-cu12" = addSetupTools "tensorrt-cu12" prev."tensorrt-cu12";
                   "tensorrt-cu12-bindings" = addSetupTools "tensorrt-cu12-bindings" (
                     final."tensorrt_cu12_bindings".overrideAttrs (old: {
-                      buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt_cu12_libs" ];
+                      buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt-cu120libs" ];
                       autoPatchelfIgnoreMissingDeps = true;
                       postFixup = appendPostFixup ''
-                        addAutoPatchelfSearchPath "${final."tensorrt_cu12_libs"}/${final.python.sitePackages}/tensorrt_libs}"
+                        addAutoPatchelfSearchPath "${final."tensorrt-cu12-libs"}/${final.python.sitePackages}/tensorrt_libs}"
                       '' old;
                     }));
 
