@@ -31,6 +31,11 @@ MODEL_CATALOG: tuple[dict[str, Any], ...] = (
         "default": True,
     },
     {
+        "id": "ibm-granite/granite-4.0-micro-GGUF",
+        "mlx_id": "ibm-granite/granite-4.0-micro-GGUF",
+        "name": "Granite 4.0 Micro GGUF",
+    },
+    {
         "id": "ibm-granite/granite-4.0-h-tiny",
         "mlx_id": "mlx-community/granite-4.0-h-small-8bit",
         "name": "Granite 4.0 Tiny",
@@ -215,7 +220,7 @@ def has_tensorrt() -> bool:
             return False
     except Exception:
         return False
-    return shutil.which("trtllm-serve") is not None
+    return _find_trtllm_serve() is not None
 
 
 def has_vllm() -> bool:
@@ -257,7 +262,9 @@ def select_backend() -> tuple[str, str | None]:
         return "tensorrt", None
 
     if not has_vllm():
-        raise RuntimeError("vLLM is not installed. Install vLLM & ensure tooling is present")
+        raise RuntimeError(
+            "vLLM is not installed. Install vLLM & ensure tooling is present"
+        )
 
     if has_cuda():
         return "vllm", "cuda"
@@ -371,6 +378,18 @@ def venv_bin() -> str:
     return os.path.dirname(sys.executable)
 
 
+def _find_trtllm_serve() -> str | None:
+    """Return path to trtllm-serve, checking PATH and the current venv."""
+    from_path = shutil.which("trtllm-serve")
+    if from_path:
+        return from_path
+
+    candidate = os.path.join(venv_bin(), "trtllm-serve")
+    if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+        return candidate
+    return None
+
+
 def start_process(
     name: str, cmd: list[str], env: dict[str, str] | None = None
 ) -> Handle:
@@ -447,10 +466,11 @@ def start_tensorrt(host: str, port: int, model_id: str) -> Handle:
     cc = compute_capability()
     if not cc or cc < 8.0:
         raise RuntimeError("TensorRT requires CC >= 8.0")
-    if not shutil.which("trtllm-serve"):
+    trtllm_serve = _find_trtllm_serve()
+    if not trtllm_serve:
         raise RuntimeError("trtllm-serve not found")
     cmd = [
-        "trtllm-serve",
+        trtllm_serve,
         "--model",
         model_id,
         "--host",
