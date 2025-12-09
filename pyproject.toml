@@ -38,7 +38,7 @@ prerelease = "allow"
 
 [[tool.uv.index]]
 name = "tensorrt-llm"
-url = "https://pypi.ngc.nvidia.com"
+url = "https://pypi.nvidia.com"
 explicit = true
 
 [project.scripts]

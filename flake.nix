@@ -328,25 +328,17 @@
                     postFixup = appendPostFixup ''addAutoPatchelfSearchPath "${torchLibPath}"'' old;
                   });
 
-                  "tensorrt-llm" = addSetupTools "tensorrt-llm" prev."tensorrt-llm";
-                  #(
-#                     prev.tensorrt-llm.overrideAttrs (old: {
-#                       buildInputs = old.buildInputs ++ cudaLibs;
-#                       autoPatchelfIgnoreMissingDeps = true;
-#                       postFixup = appendPostFixup ''
-#                         addAutoPatchelfSearchPath "${final."tensorrt-cu12-libs"}/${final.python.sitePackages}/tensorrt_libs}"
-#                       '' old;
-                    #}));
 
-                  "tensorrt-cu12" = addSetupTools "tensorrt-cu12" prev."tensorrt-cu12";
-                  "tensorrt-cu12-bindings" = addSetupTools "tensorrt-cu12-bindings" (
-                    prev."tensorrt-cu12-bindings".overrideAttrs (old: {
-                      buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt-cu12-libs" ];
-                      autoPatchelfIgnoreMissingDeps = true;
-                      postFixup = appendPostFixup ''
-                        addAutoPatchelfSearchPath "${final."tensorrt-cu12-libs"}/${final.python.sitePackages}/tensorrt_libs}"
-                      '' old;
-                    }));
+                  "tensorrt-llm" = addSetupTools "tensorrt-llm" prev."tensorrt-llm";
+
+                  # "tensorrt-llm" = addSetupTools "tensorrt-llm" (
+                  #   prev.tensorrt-llm.overrideAttrs (old: {
+                  #     buildInputs = old.buildInputs ++ cudaLibs;
+                  #     autoPatchelfIgnoreMissingDeps = true;
+                  #     postFixup = appendPostFixup ''
+                  #       addAutoPatchelfSearchPath "${final."tensorrt-cu13-libs"}/${final.python.sitePackages}/tensorrt_libs}"
+                  #     '' old;
+                  #   }));
 
                   # "tensorrt-llm" = prev."tensorrt-llm".overrideAttrs (old: {
                   #   nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ wheelStub ];
@@ -361,6 +353,16 @@
                   #     ]
                   #   );
                   # });
+
+                  "tensorrt-cu12" = addSetupTools "tensorrt-cu12" prev."tensorrt-cu12";
+                  "tensorrt-cu12-bindings" = addSetupTools "tensorrt-cu12-bindings" (
+                    prev."tensorrt-cu12-bindings".overrideAttrs (old: {
+                      buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt-cu12-libs" ];
+                      autoPatchelfIgnoreMissingDeps = true;
+                      postFixup = appendPostFixup ''
+                        addAutoPatchelfSearchPath "${final."tensorrt-cu12-libs"}/${final.python.sitePackages}/tensorrt_libs}"
+                      '' old;
+                    }));
 
                   "tensorrt" = addSetupTools "tensorrt" prev."tensorrt";
                   "etcd3" = addSetupTools "etcd3" prev."etcd3";
