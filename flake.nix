@@ -271,7 +271,6 @@
 
                   addSetupTools =
                     name: pkg:
-                    assert lib.isDerivation pkg || builtins.trace "addSetupTools: ${name} is ${builtins.typeOf pkg}" false;
                     pkg.overrideAttrs (old: {
                       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final."setuptools" ];
                     });
@@ -329,6 +328,18 @@
                     postFixup = appendPostFixup ''addAutoPatchelfSearchPath "${torchLibPath}"'' old;
                   });
 
+                  "tensorrt-llm" = addSetupTools "tensorrt-llm" (cudaPatch "tensorrt-llm" prev."tensorrt-llm");
+                  "tensorrt-cu13" = addSetupTools "tensorrt-cu13" prev."tensorrt-cu13";
+                  "tensorrt-cu13-bindings" = addSetupTools "tensorrt-cu13-bindings" (
+                    prev."tensorrt-cu13-bindings".overrideAttrs (old: {
+                      buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt-cu13-libs" ];
+                      autoPatchelfIgnoreMissingDeps = true;
+                      postFixup = appendPostFixup ''
+                        addAutoPatchelfSearchPath "${final."tensorrt-cu13-libs"}/${final.python.sitePackages}/tensorrt_libs}"
+                      '' old;
+                    })
+                  );
+
                   # "tensorrt-llm" = prev."tensorrt-llm".overrideAttrs (old: {
                   #   nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ wheelStub ];
                   #   propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ wheelStub ];
@@ -343,25 +354,9 @@
                   #   );
                   # });
 
-                  "tensorrt-llm" = addSetupTools "tensorrt-llm" (cudaPatch "tensorrt-llm" prev."tensorrt-llm");
-
                   "tensorrt" = addSetupTools "tensorrt" prev."tensorrt";
                   "etcd3" = addSetupTools "etcd3" prev."etcd3";
                   "flashinfer-python" = addSetupTools "flashinfer-python" prev."flashinfer-python";
-                  "tensorrt-cu13" = addSetupTools "tensorrt-cu13" prev."tensorrt-cu13";
-                  "tensorrt-cu13-bindings" =
-                    addSetupTools "tensorrt-cu13-bindings" (
-                      prev."tensorrt-cu13-bindings".overrideAttrs (old: {
-                        buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt-cu13-libs" ];
-                        autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
-                          "libcuda.so.1"
-                          "libnvidia-ml.so.1"
-                        ];
-                        autoPatchelfExtraLibs = (old.autoPatchelfExtraLibs or [ ]) ++ [
-                          "${final."tensorrt-cu13-libs"}/${final.python.sitePackages}/tensorrt_libs"
-                        ];
-                      })
-                    );
 
                   # I never got the patch working but it works w/o
                   "torchaudio" =
