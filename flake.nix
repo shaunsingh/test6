@@ -364,6 +364,8 @@
                   #   );
                   # });
 
+
+                  "tensorrt-cu12" = addSetupTools "tensorrt-cu12" prev."tensorrt-cu12";
                   "tensorrt" = addSetupTools "tensorrt" prev."tensorrt";
                   "etcd3" = addSetupTools "etcd3" prev."etcd3";
                   "flashinfer-python" = addSetupTools "flashinfer-python" prev."flashinfer-python";
