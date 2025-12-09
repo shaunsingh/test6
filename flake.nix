@@ -364,6 +364,7 @@
                   #   );
                   # });
 
+                  "tensorrt-cu12" = addSetupTools "tensorrt-cu12" prev."tensorrt-cu12";
                   "tensorrt-cu12-bindings" = addSetupTools "tensorrt-cu12-bindings" (
                     prev."tensorrt-cu12-bindings".overrideAttrs (old: {
                       buildInputs = (old.buildInputs or [ ]) ++ [ final."tensorrt-cu12-libs" ];
